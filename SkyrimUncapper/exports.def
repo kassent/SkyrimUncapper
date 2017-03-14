@@ -1,0 +1,5 @@
+EXPORTS
+StartSkyrimUncapper
+SKSEPlugin_Query
+SKSEPlugin_Load
+LoadINIConfig
