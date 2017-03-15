@@ -188,11 +188,11 @@ void ModPerkPool_Hook(SInt8 count)
 	UInt8* points = *reinterpret_cast<UInt8**>(g_pCharacter.GetPtr()) + 0xB01;
 	if (count > 0) //AddPerkPoints
 	{
-		static float mantissa = 0.0f;  //This vlaue needs to be stored to cross save.
+		//static float mantissa = 0.0f;  //This vlaue needs to be stored to cross save.
 		UInt16 level = GetLevel(*g_pCharacter);
-		float increment = settings.settingsPerksAtLevelUp.GetValue(level) + mantissa;
+		float increment = settings.settingsPerksAtLevelUp.GetValue(level) + settings.settingsPerksAtLevelUp.GetDecimal(level);
 		count = static_cast<SInt8>(increment);
-		mantissa = increment - count;
+		//mantissa = increment - count;
 #ifdef _DEBUG
 		_MESSAGE("function: %s, count: %d, perkPoints: %d, level: %d", __FUNCTION__, count, *points, level);
 #endif

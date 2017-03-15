@@ -5,56 +5,68 @@
 typedef unsigned long UInt32;
 ///typedef std::map<UInt32, float>				SettingListFloat;
 
-struct SettingListInt : public std::map < UInt32, UInt32 >
+template<typename T>
+struct SettingList : public std::map < UInt32, T>
 {
-	SettingListInt::mapped_type GetMapValue(const SettingListInt::key_type& index)  ///read-only 
+	typename SettingList::mapped_type GetValue(const typename SettingList::key_type& index)
 	{
-		SettingListInt::mapped_type result = 1;
-		auto it = std::find_if(begin(), end(), [index, &result](const SettingListInt::value_type& param)->bool{
-			if (param.first == index)
+		typename SettingList::mapped_type result = NULL;
+		for (auto it = rbegin(); it != rend(); ++it)
+		{
+			if (it->first <= index)
 			{
-				result = param.second;
-				return true;
+				result = it->second;
+				break;
 			}
-			else if ((index > param.first) && (param.first > result))
-				result = param.second;
-			return false;
-		});
+		}
 		return result;
 	}
-};
 
-struct SettingListFloat : public std::map < UInt32, float >
-{
-	SettingListFloat::mapped_type GetMapValue(const SettingListFloat::key_type& index)  ///read-only 
+	float GetDecimal(const typename SettingList::key_type& index)
 	{
-		SettingListFloat::mapped_type result = 1.0f;
-		auto it = std::find_if(begin(), end(), [index, &result](const SettingListFloat::value_type& param)->bool{
-			if (param.first == index)
+		float decimal = 0.00f;
+		for (auto iterator = rbegin(); iterator != rend(); ++iterator)
+		{
+			if (iterator->first < index)
 			{
-				result = param.second;
-				return true;
+				if (iterator != --rend())
+				{
+					decimal += (index - iterator->first) * (iterator->second);
+					auto it = iterator;
+					++it;
+					for (; it != rend(); ++it)
+					{
+						auto nextIterator = it;
+						--nextIterator;
+						if (it != --rend())
+							decimal += (nextIterator->first - it->first) * (it->second);
+						else
+							decimal += (nextIterator->first - it->first - 1) * (it->second);
+					}
+				}
+				else
+					decimal += (index - iterator->first - 1) * (iterator->second);
+				break;
 			}
-			else if ((index > param.first) && (param.first > result))
-				result = param.second;
-			return false;
-		});
-		return result;
+		}
+		return decimal - static_cast<UInt32>(decimal);
 	}
-};
 
+};
 void main()
 {
 
-	SettingListInt  test;
+	SettingList<float>  test;
 
-	test.insert({ 1, 3 });
-	test.insert({ 4, 2 });
-	test.insert({ 10, 5 });
-	test.insert({ 20, 7 });
-	int m = test.GetMapValue(7);
-	int n = test.GetMapValue(14);
-	printf("m=%d, n=%d\n", m, n);
+	test.insert({ 1, 1.13 });
+	test.insert({ 4, 2.28 });
+	test.insert({ 10, 5.46 });
+	test.insert({ 20, 7.35 });
+	for (unsigned long i = 0; i < 1000; ++i)
+	{
+		printf("index: %d, n: %.2f\n", i, test.GetDecimal(i));
+	}
+
 
 	system("pause");
 }

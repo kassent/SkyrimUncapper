@@ -12,20 +12,48 @@ struct SettingList : public std::map < UInt32, T>
 {
 	typename SettingList::mapped_type GetValue(const typename SettingList::key_type& index)
 	{
-		//typename SettingList::mapped_type result = NULL;
-		typename SettingList::key_type maxLevel = NULL;
-		auto it = std::find_if(begin(), end(), [index, &maxLevel](const typename SettingList::value_type& param)->bool{
-			if (param.first == index)
+		typename SettingList::mapped_type result = NULL;
+		for (auto it = rbegin(); it != rend(); ++it)
+		{
+			if (it->first <= index)
 			{
-				maxLevel = param.first;
-				return true;
+				result = it->second;
+				break;
 			}
-			else if ((index > param.first) && (param.first > maxLevel))
-				maxLevel = param.first;
-			return false;
-		});
-		return this->at(maxLevel);
+		}
+		return result;
 	}
+
+	float GetDecimal(const typename SettingList::key_type& index)
+	{
+		float decimal = 0.00f;
+		for (auto iterator = rbegin(); iterator != rend(); ++iterator)
+		{
+			if (iterator->first < index)
+			{
+				if (iterator != --rend())
+				{
+					decimal += (index - iterator->first) * (iterator->second);
+					auto it = iterator;
+					++it;
+					for (; it != rend(); ++it)
+					{
+						auto nextIterator = it;
+						--nextIterator;
+						if (it != --rend())
+							decimal += (nextIterator->first - it->first) * (it->second);
+						else
+							decimal += (nextIterator->first - it->first - 1) * (it->second);
+					}
+				}
+				else
+					decimal += (index - iterator->first - 1) * (iterator->second);
+				break;
+			}
+		}
+		return decimal - static_cast<UInt32>(decimal);
+	}
+
 };
 
 struct SettingsGeneral
