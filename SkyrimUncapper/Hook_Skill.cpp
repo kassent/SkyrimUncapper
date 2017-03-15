@@ -415,9 +415,10 @@ void Hook_Skill_Commit()
 	}
 #ifdef INVALID_CODE
 	{
+		//fix it....
 		float maxLevel = 10000.0f;
 		RelocAddr<float> skillCap = 0x014E6B68;	//not sure.
-		SafeWrite64(skillCap.GetUIntPtr(), *(uintptr_t*)&maxLevel);
+		SafeWrite32(skillCap.GetUIntPtr(), *(UInt32*)&maxLevel);
 	}
 #endif
 }

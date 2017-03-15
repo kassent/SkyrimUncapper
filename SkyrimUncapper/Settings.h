@@ -12,18 +12,19 @@ struct SettingList : public std::map < UInt32, T>
 {
 	typename SettingList::mapped_type GetValue(const typename SettingList::key_type& index)
 	{
-		typename SettingList::mapped_type result = NULL;
-		auto it = std::find_if(begin(), end(), [index, &result](const typename SettingList::value_type& param)->bool{
+		//typename SettingList::mapped_type result = NULL;
+		typename SettingList::key_type maxLevel = NULL;
+		auto it = std::find_if(begin(), end(), [index, &maxLevel](const typename SettingList::value_type& param)->bool{
 			if (param.first == index)
 			{
-				result = param.second;
+				maxLevel = param.first;
 				return true;
 			}
-			else if ((index > param.first) && (param.first > result))
-				result = param.second;
+			else if ((index > param.first) && (param.first > maxLevel))
+				maxLevel = param.first;
 			return false;
 		});
-		return result;
+		return this->at(maxLevel);
 	}
 };
 

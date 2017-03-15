@@ -1,6 +1,7 @@
 #include "Utilities.h"
 #include "Shlwapi.h"
 #include <string>
+#include <memory>
 
 #pragma comment(lib, "shlwapi.lib")
 
@@ -176,6 +177,66 @@ void * GetIATAddr(void * module, const char * searchDllName, const char * search
 
 	return NULL;
 }
+/*
+uintptr_t BinarySearch(const std::vector<UInt8>& binary)
+{
+	uintptr_t result = NULL;
+	static UInt8			* base = (UInt8 *)GetModuleHandle(NULL);
+	IMAGE_DOS_HEADER		* dosHeader = (IMAGE_DOS_HEADER *)base;
+	IMAGE_NT_HEADERS		* ntHeader = (IMAGE_NT_HEADERS *)(base + dosHeader->e_lfanew);
+	DWORD baseOfCode = ntHeader->OptionalHeader.BaseOfCode;
+	DWORD sizeOfCode = ntHeader->OptionalHeader.SizeOfCode;
+	uintptr_t startPoint = reinterpret_cast<uintptr_t>(GetModuleHandle(NULL)) + baseOfCode;
+	uintptr_t endPoint = reinterpret_cast<uintptr_t>(GetModuleHandle(NULL)) + baseOfCode + sizeOfCode;
+
+	ASSERT(startPoint <= endPoint);
+	size_t binarySize = binary.size();			//KMP
+
+	std::unique_ptr<UInt32[]> next(new UInt32[binarySize]);
+	SInt32 k = -1, j = 0;
+	next[0] = -1;
+	while (j < binarySize - 1)
+	{
+		if (k == -1 || binary[j] == binary[k])
+		{
+			if (binary[++j] == binary[++k])
+				next[j] = next[k];
+			else
+				next[j] = k;
+		}
+		else
+			k = next[k];
+	}
+	_MESSAGE("Create next array,start: %016X, endPoint: %016X", startPoint, endPoint);
+	while (startPoint <= endPoint - binarySize)
+	{
+		for (size_t i = 0; i < binarySize; ++i)
+		{
+			UInt32 oldProtect;
+			VirtualProtect((void *)(i + startPoint), sizeof(UInt8), PAGE_EXECUTE_READWRITE, &oldProtect);
+			UInt8 code = *reinterpret_cast<UInt8*>(i + startPoint);
+			VirtualProtect((void *)(i + startPoint), sizeof(UInt8), oldProtect, &oldProtect);
+
+			if (binary[i] == code)
+			{
+				if (i == binarySize - 1)
+				{
+					result = startPoint;
+					_MESSAGE("Find code in memory,addr is %016X, offset is: %08X", result, result - (uintptr_t)base);
+					return result;
+				}
+			}
+			else
+			{
+				startPoint += (i - next[i]);
+				break;
+			}
+		}
+	}
+	_MESSAGE("Finish....");
+	return result;
+}
+*/
 
 #pragma warning (push)
 #pragma warning (disable : 4200)

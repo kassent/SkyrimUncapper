@@ -103,7 +103,15 @@ extern "C" {
 
 		g_pluginHandle = skse->GetPluginHandle();
 
+		if (skse->isEditor)
+		{
+			_ERROR("loaded in editor, marking as incompatible");
+
+			return false;
+		}
+
 		g_moduleHandle = (void *)::GetModuleHandle("SkyrimUncapper.dll");
+
 		SkyrimUncapper_Initialize();
 
 		return true;

@@ -14,7 +14,7 @@ void Settings::ReadConfig()
 	_MESSAGE(__FUNCTION__);
 
 	std::string path = GetCurrentDLLDirectory() + "\\SkyrimUncapper.ini";//".\\Data\\SKSE\\Plugin\\SkyrimUncapper.ini";
-	_MESSAGE(path.c_str());
+	//_MESSAGE(path.c_str());
 	CSimpleIniA ini;
 	ini.LoadFile(path.c_str());
 	settingsGeneral.version = ini.GetLongValue("General", "iVersion", 0);
@@ -162,6 +162,9 @@ void Settings::ReadConfig()
 		settingsCarryWeightAtMagickaLevelUp.insert({ 1, 5 });
 	}
 	ini.Reset();
+
+	//std::vector<UInt8> binaryCode = { 0x40, 0x53, 0x48, 0x83, 0xEC, 0x20, 0x80, 0x3D, 0x83, 0x5A, 0x64, 0x02, 0x00, 0x8B, 0xDA, 0x74, 0x7E, 0x48, 0x8B, 0x05, 0x10, 0xE1, 0x61, 0x02, 0x48, 0x89, 0x7C, 0x24, 0x30, 0x48, 0x8B, 0xB8, 0xF0, 0x01, 0x00, 0x00 };
+	//BinarySearch(binaryCode);
 }
 
 void Settings::SaveConfig(CSimpleIniA* ini,const std::string& path)
