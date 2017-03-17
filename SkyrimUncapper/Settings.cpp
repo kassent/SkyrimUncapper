@@ -160,7 +160,7 @@ void Settings::ReadConfig()
 	settings.settingsLegenarySkill.bLegenaryKeepSkillLevel = ini.GetBoolValue("LegenarySkill", "bLengenaryKeepSkillLevel", false);
 	settings.settingsLegenarySkill.bShowLegenaryButton = ini.GetBoolValue("LegenarySkill", "bShowLegenaryButton", true);
 	settings.settingsLegenarySkill.iSkillLevelEnableLegenary = ini.GetLongValue("LegenarySkill", "iSkillLevelEnableLegenary", 100);
-	settings.settingsLegenarySkill.iSkillLevelAfterLengenary = ini.GetLongValue("LegenarySkill", "iSkillLevelAfterLengenary", 0);
+	settings.settingsLegenarySkill.iSkillLevelAfterLengenary = ini.GetLongValue("LegenarySkill", "iSkillLevelAfterLengenary", 15);
 
 	if (settingsGeneral.version != CONFIG_VERSION)
 	{
