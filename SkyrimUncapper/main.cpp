@@ -48,7 +48,7 @@ void SkyrimUncapper_Initialize(void)
 	if (isInit) return;
 	isInit = true;
 
-	gLog.OpenRelative(CSIDL_MYDOCUMENTS, "\\My Games\\Skyrim\\SkyrimSE\\SkyrimUncapper.log");
+	gLog.OpenRelative(CSIDL_MYDOCUMENTS, "\\My Games\\Skyrim Special Edition\\SkyrimUncapper\\SkyrimUncapper.log");
 
 	_MESSAGE("imagebase = %016I64X", GetModuleHandle(NULL));
 	_MESSAGE("reloc mgr imagebase = %016I64X", RelocationManager::s_baseAddr);
@@ -89,14 +89,20 @@ extern "C" {
 		return TRUE;
 	}
 
-	void StartSkyrimUncapper(void)
+	bool StartSkyrimUncapper(void)
 	{
 		g_moduleHandle = (void *)::GetModuleHandle("SkyrimUncapper.dll");
 		SkyrimUncapper_Initialize();
+		return true;
 	}
 
 	bool SKSEPlugin_Query(const SKSEInterface * skse, PluginInfo * info)
 	{
+
+		g_moduleHandle = (void *)::GetModuleHandle("SkyrimUncapper.dll");
+
+		SkyrimUncapper_Initialize();
+
 		info->infoVersion = PluginInfo::kInfoVersion;
 		info->name = "SkyrimUncapper";
 		info->version = 1;
@@ -109,10 +115,6 @@ extern "C" {
 
 			return false;
 		}
-
-		g_moduleHandle = (void *)::GetModuleHandle("SkyrimUncapper.dll");
-
-		SkyrimUncapper_Initialize();
 
 		return true;
 	}

@@ -5,7 +5,7 @@
 #include <string>
 #include <algorithm>
 
-#define CONFIG_VERSION 1
+#define CONFIG_VERSION 2
 
 template<typename T>
 struct SettingList : public std::map < UInt32, T>
@@ -53,13 +53,20 @@ struct SettingList : public std::map < UInt32, T>
 		}
 		return decimal - static_cast<UInt32>(decimal);
 	}
-
 };
 
 struct SettingsGeneral
 {
 	UInt32				version;
 	std::string			author;
+};
+
+struct SettingsLegenarySkill
+{
+	bool				bLegenaryKeepSkillLevel;
+	bool				bShowLegenaryButton;
+	UInt32				iSkillLevelEnableLegenary;
+	UInt32				iSkillLevelAfterLengenary;
 };
 
 struct Settings
@@ -70,6 +77,7 @@ struct Settings
 	//static Settings* GetSingleton();
 
 	SettingsGeneral				settingsGeneral;
+	SettingsLegenarySkill		settingsLegenarySkill;
 	SettingList<UInt32>			settingsSkillCaps;
 	SettingList<UInt32>			settingsSkillFormulaCaps;
 	SettingList<float>			settingsSkillExpGainMults;

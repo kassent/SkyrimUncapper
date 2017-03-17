@@ -5,24 +5,14 @@ Settings settings;
 
 Settings::Settings()
 {
-	//_MESSAGE(__FUNCTION__);
-	//ReadConfig();
+
 }
 
 void Settings::ReadConfig()
 {
-	_MESSAGE(__FUNCTION__);
-
-	std::string path = GetCurrentDLLDirectory() + "\\SkyrimUncapper.ini";//".\\Data\\SKSE\\Plugin\\SkyrimUncapper.ini";
-	//_MESSAGE(path.c_str());
+	std::string path = GetCurrentDLLDirectory() + "\\SkyrimUncapper.ini";
 	CSimpleIniA ini;
 	ini.LoadFile(path.c_str());
-	settingsGeneral.version = ini.GetLongValue("General", "iVersion", 0);
-	_MESSAGE("Config version: %d", settingsGeneral.version);
-	if (settingsGeneral.version != CONFIG_VERSION)
-		SaveConfig(&ini, path);
-
-	settingsGeneral.author = ini.GetValue("General", "iAuthor", "Kassent");
 
 	settingsSkillCaps.clear();
 	settingsSkillFormulaCaps.clear();
@@ -35,6 +25,10 @@ void Settings::ReadConfig()
 	settingsCarryWeightAtHealthLevelUp.clear();
 	settingsCarryWeightAtStaminaLevelUp.clear();
 	settingsCarryWeightAtMagickaLevelUp.clear();
+
+	settingsGeneral.version = ini.GetLongValue("General", "Version", 0);
+	settingsGeneral.author = ini.GetValue("General", "Author", "Kassent");
+	_MESSAGE("INI VERSION: %d", settingsGeneral.version);
 
 	settingsSkillCaps.insert({ 0,	ini.GetLongValue("SkillCaps", "iOneHanded",	    100) });
 	settingsSkillCaps.insert({ 1,	ini.GetLongValue("SkillCaps", "iTwoHanded",		100) });
@@ -113,6 +107,7 @@ void Settings::ReadConfig()
 	settingsLevelSkillExpMults.insert({ 17,	atof(ini.GetValue("LevelSkillExpMults", "fEnchanting",	"1.00")) });
 
 	CSimpleIniA::TNamesDepend keys;
+
 	if (ini.GetAllKeys("PerksAtLevelUp", keys))
 	{
 		for (auto& element : keys)
@@ -145,7 +140,7 @@ void Settings::ReadConfig()
 	{
 		for (auto& element : keys)
 			settingsCarryWeightAtHealthLevelUp.insert({ atoi(element.pItem), ini.GetLongValue("CarryWeightAtHealthLevelUp", element.pItem,	5) });
-		settingsCarryWeightAtHealthLevelUp.insert({ 1, 5 });
+		settingsCarryWeightAtHealthLevelUp.insert({ 1, 0 });
 	}
 
 	if (ini.GetAllKeys("CarryWeightAtStaminaLevelUp", keys))
@@ -159,113 +154,221 @@ void Settings::ReadConfig()
 	{
 		for (auto& element : keys)
 			settingsCarryWeightAtMagickaLevelUp.insert({ atoi(element.pItem), ini.GetLongValue("CarryWeightAtMagickaLevelUp", element.pItem,	5) });
-		settingsCarryWeightAtMagickaLevelUp.insert({ 1, 5 });
+		settingsCarryWeightAtMagickaLevelUp.insert({ 1, 0 });
 	}
-	ini.Reset();
 
-	//std::vector<UInt8> binaryCode = { 0x40, 0x53, 0x48, 0x83, 0xEC, 0x20, 0x80, 0x3D, 0x83, 0x5A, 0x64, 0x02, 0x00, 0x8B, 0xDA, 0x74, 0x7E, 0x48, 0x8B, 0x05, 0x10, 0xE1, 0x61, 0x02, 0x48, 0x89, 0x7C, 0x24, 0x30, 0x48, 0x8B, 0xB8, 0xF0, 0x01, 0x00, 0x00 };
-	//BinarySearch(binaryCode);
+	settings.settingsLegenarySkill.bLegenaryKeepSkillLevel = ini.GetBoolValue("LegenarySkill", "bLengenaryKeepSkillLevel", false);
+	settings.settingsLegenarySkill.bShowLegenaryButton = ini.GetBoolValue("LegenarySkill", "bShowLegenaryButton", true);
+	settings.settingsLegenarySkill.iSkillLevelEnableLegenary = ini.GetLongValue("LegenarySkill", "iSkillLevelEnableLegenary", 100);
+	settings.settingsLegenarySkill.iSkillLevelAfterLengenary = ini.GetLongValue("LegenarySkill", "iSkillLevelAfterLengenary", 0);
+
+	if (settingsGeneral.version != CONFIG_VERSION)
+	{
+		_MESSAGE("ini file is outdated, try to update ini file...");
+		SaveConfig(&ini, path);
+	}
+
+	ini.Reset();
 }
 
 void Settings::SaveConfig(CSimpleIniA* ini,const std::string& path)
 {
-	_MESSAGE(__FUNCTION__);
-
 	ini->Reset();
 	settingsGeneral.version = CONFIG_VERSION;
 
-	ini->SetLongValue("General", "iVersion", settingsGeneral.version, "#Configuration file version, DO NOT CHANGE");
-	ini->SetValue("General", "iAuthor", "Kassent", NULL);
+	ini->SetLongValue("General", "Version", CONFIG_VERSION, "#Configuration file version, DO NOT CHANGE");
+	ini->SetValue("General", "Author", "Kassent", NULL);
 
-	ini->SetLongValue("SkillCaps", "iOneHanded", 100, "#Set the Skill Level Cap.");
-	ini->SetLongValue("SkillCaps", "iTwoHanded", 100, NULL);
-	ini->SetLongValue("SkillCaps", "iMarksman", 100, NULL);
-	ini->SetLongValue("SkillCaps", "iBlock", 100, NULL);
-	ini->SetLongValue("SkillCaps", "iSmithing", 100, NULL);
-	ini->SetLongValue("SkillCaps", "iHeavyArmor", 100, NULL);
-	ini->SetLongValue("SkillCaps", "iLightArmor", 100, NULL);
-	ini->SetLongValue("SkillCaps", "iPickpocket", 100, NULL);
-	ini->SetLongValue("SkillCaps", "iLockPicking", 100, NULL);
-	ini->SetLongValue("SkillCaps", "iSneak", 100, NULL);
-	ini->SetLongValue("SkillCaps", "iAlchemy", 100, NULL);
-	ini->SetLongValue("SkillCaps", "iSpeechCraft", 100, NULL);
-	ini->SetLongValue("SkillCaps", "iAlteration", 100, NULL);
-	ini->SetLongValue("SkillCaps", "iConjuration", 100, NULL);
-	ini->SetLongValue("SkillCaps", "iDestruction", 100, NULL);
-	ini->SetLongValue("SkillCaps", "iIllusion", 100, NULL);
-	ini->SetLongValue("SkillCaps", "iRestoration", 100, NULL);
-	ini->SetLongValue("SkillCaps", "iEnchanting", 100, NULL);
+	ini->SetLongValue("SkillCaps", "iOneHanded", settings.settingsSkillCaps[0], "#Set the Skill Level Cap.");
+	ini->SetLongValue("SkillCaps", "iTwoHanded", settings.settingsSkillCaps[1], NULL);
+	ini->SetLongValue("SkillCaps", "iMarksman", settings.settingsSkillCaps[2], NULL);
+	ini->SetLongValue("SkillCaps", "iBlock", settings.settingsSkillCaps[3], NULL);
+	ini->SetLongValue("SkillCaps", "iSmithing", settings.settingsSkillCaps[4], NULL);
+	ini->SetLongValue("SkillCaps", "iHeavyArmor", settings.settingsSkillCaps[5], NULL);
+	ini->SetLongValue("SkillCaps", "iLightArmor", settings.settingsSkillCaps[6], NULL);
+	ini->SetLongValue("SkillCaps", "iPickpocket", settings.settingsSkillCaps[7], NULL);
+	ini->SetLongValue("SkillCaps", "iLockPicking", settings.settingsSkillCaps[8], NULL);
+	ini->SetLongValue("SkillCaps", "iSneak", settings.settingsSkillCaps[9], NULL);
+	ini->SetLongValue("SkillCaps", "iAlchemy", settings.settingsSkillCaps[10], NULL);
+	ini->SetLongValue("SkillCaps", "iSpeechCraft", settings.settingsSkillCaps[11], NULL);
+	ini->SetLongValue("SkillCaps", "iAlteration", settings.settingsSkillCaps[12], NULL);
+	ini->SetLongValue("SkillCaps", "iConjuration", settings.settingsSkillCaps[13], NULL);
+	ini->SetLongValue("SkillCaps", "iDestruction", settings.settingsSkillCaps[14], NULL);
+	ini->SetLongValue("SkillCaps", "iIllusion", settings.settingsSkillCaps[15], NULL);
+	ini->SetLongValue("SkillCaps", "iRestoration", settings.settingsSkillCaps[16], NULL);
+	ini->SetLongValue("SkillCaps", "iEnchanting", settings.settingsSkillCaps[17], NULL);
 
-	ini->SetLongValue("SkillFormulaCaps", "iOneHanded", 100, "#Set the Skill Formula Cap.");
-	ini->SetLongValue("SkillFormulaCaps", "iTwoHanded", 100, NULL);
-	ini->SetLongValue("SkillFormulaCaps", "iMarksman", 100, NULL);
-	ini->SetLongValue("SkillFormulaCaps", "iBlock", 100, NULL);
-	ini->SetLongValue("SkillFormulaCaps", "iSmithing", 100, NULL);
-	ini->SetLongValue("SkillFormulaCaps", "iHeavyArmor", 100, NULL);
-	ini->SetLongValue("SkillFormulaCaps", "iLightArmor", 100, NULL);
-	ini->SetLongValue("SkillFormulaCaps", "iPickpocket", 100, NULL);
-	ini->SetLongValue("SkillFormulaCaps", "iLockPicking", 100, NULL);
-	ini->SetLongValue("SkillFormulaCaps", "iSneak", 100, NULL);
-	ini->SetLongValue("SkillFormulaCaps", "iAlchemy", 100, NULL);
-	ini->SetLongValue("SkillFormulaCaps", "iSpeechCraft", 100, NULL);
-	ini->SetLongValue("SkillFormulaCaps", "iAlteration", 100, NULL);
-	ini->SetLongValue("SkillFormulaCaps", "iConjuration", 100, NULL);
-	ini->SetLongValue("SkillFormulaCaps", "iDestruction", 100, NULL);
-	ini->SetLongValue("SkillFormulaCaps", "iIllusion", 100, NULL);
-	ini->SetLongValue("SkillFormulaCaps", "iRestoration", 100, NULL);
-	ini->SetLongValue("SkillFormulaCaps", "iEnchanting", 100, NULL);
+	ini->SetLongValue("SkillFormulaCaps", "iOneHanded", settings.settingsSkillFormulaCaps[0], "#Set the Skill Formula Cap.");
+	ini->SetLongValue("SkillFormulaCaps", "iTwoHanded", settings.settingsSkillFormulaCaps[1], NULL);
+	ini->SetLongValue("SkillFormulaCaps", "iMarksman", settings.settingsSkillFormulaCaps[2], NULL);
+	ini->SetLongValue("SkillFormulaCaps", "iBlock", settings.settingsSkillFormulaCaps[3], NULL);
+	ini->SetLongValue("SkillFormulaCaps", "iSmithing", settings.settingsSkillFormulaCaps[4], NULL);
+	ini->SetLongValue("SkillFormulaCaps", "iHeavyArmor", settings.settingsSkillFormulaCaps[5], NULL);
+	ini->SetLongValue("SkillFormulaCaps", "iLightArmor", settings.settingsSkillFormulaCaps[6], NULL);
+	ini->SetLongValue("SkillFormulaCaps", "iPickpocket", settings.settingsSkillFormulaCaps[7], NULL);
+	ini->SetLongValue("SkillFormulaCaps", "iLockPicking", settings.settingsSkillFormulaCaps[8], NULL);
+	ini->SetLongValue("SkillFormulaCaps", "iSneak", settings.settingsSkillFormulaCaps[9], NULL);
+	ini->SetLongValue("SkillFormulaCaps", "iAlchemy", settings.settingsSkillFormulaCaps[10], NULL);
+	ini->SetLongValue("SkillFormulaCaps", "iSpeechCraft", settings.settingsSkillFormulaCaps[11], NULL);
+	ini->SetLongValue("SkillFormulaCaps", "iAlteration", settings.settingsSkillFormulaCaps[12], NULL);
+	ini->SetLongValue("SkillFormulaCaps", "iConjuration", settings.settingsSkillFormulaCaps[13], NULL);
+	ini->SetLongValue("SkillFormulaCaps", "iDestruction", settings.settingsSkillFormulaCaps[14], NULL);
+	ini->SetLongValue("SkillFormulaCaps", "iIllusion", settings.settingsSkillFormulaCaps[15], NULL);
+	ini->SetLongValue("SkillFormulaCaps", "iRestoration", settings.settingsSkillFormulaCaps[16], NULL);
+	ini->SetLongValue("SkillFormulaCaps", "iEnchanting", settings.settingsSkillFormulaCaps[17], NULL);
 
-	ini->SetValue("SkillExpGainMults", "fOneHanded", "1.00", "#Set the Skill Experience Gained Multiplier.");
-	ini->SetValue("SkillExpGainMults", "fTwoHanded", "1.00", NULL);
-	ini->SetValue("SkillExpGainMults", "fMarksman", "1.00", NULL);
-	ini->SetValue("SkillExpGainMults", "fBlock", "1.00", NULL);
-	ini->SetValue("SkillExpGainMults", "fSmithing", "1.00", NULL);
-	ini->SetValue("SkillExpGainMults", "fHeavyArmor", "1.00", NULL);
-	ini->SetValue("SkillExpGainMults", "fLightArmor", "1.00", NULL);
-	ini->SetValue("SkillExpGainMults", "fPickpocket", "1.00", NULL);
-	ini->SetValue("SkillExpGainMults", "fLockPicking", "1.00", NULL);
-	ini->SetValue("SkillExpGainMults", "fSneak", "1.00", NULL);
-	ini->SetValue("SkillExpGainMults", "fAlchemy", "1.00", NULL);
-	ini->SetValue("SkillExpGainMults", "fSpeechCraft", "1.00", NULL);
-	ini->SetValue("SkillExpGainMults", "fAlteration", "1.00", NULL);
-	ini->SetValue("SkillExpGainMults", "fConjuration", "1.00", NULL);
-	ini->SetValue("SkillExpGainMults", "fDestruction", "1.00", NULL);
-	ini->SetValue("SkillExpGainMults", "fIllusion", "1.00", NULL);
-	ini->SetValue("SkillExpGainMults", "fRestoration", "1.00", NULL);
-	ini->SetValue("SkillExpGainMults", "fEnchanting", "1.00", NULL);
+	char buffer[0x10];
 
-	ini->SetValue("LevelSkillExpMults", "fOneHanded", "1.00", "#Set the Skill Experience to Player's Character Experience Multipliers.");
-	ini->SetValue("LevelSkillExpMults", "fTwoHanded", "1.00", NULL);
-	ini->SetValue("LevelSkillExpMults", "fMarksman", "1.00", NULL);
-	ini->SetValue("LevelSkillExpMults", "fBlock", "1.00", NULL);
-	ini->SetValue("LevelSkillExpMults", "fSmithing", "1.00", NULL);
-	ini->SetValue("LevelSkillExpMults", "fHeavyArmor", "1.00", NULL);
-	ini->SetValue("LevelSkillExpMults", "fLightArmor", "1.00", NULL);
-	ini->SetValue("LevelSkillExpMults", "fPickpocket", "1.00", NULL);
-	ini->SetValue("LevelSkillExpMults", "fLockPicking", "1.00", NULL);
-	ini->SetValue("LevelSkillExpMults", "fSneak", "1.00", NULL);
-	ini->SetValue("LevelSkillExpMults", "fAlchemy", "1.00", NULL);
-	ini->SetValue("LevelSkillExpMults", "fSpeechCraft", "1.00", NULL);
-	ini->SetValue("LevelSkillExpMults", "fAlteration", "1.00", NULL);
-	ini->SetValue("LevelSkillExpMults", "fConjuration", "1.00", NULL);
-	ini->SetValue("LevelSkillExpMults", "fDestruction", "1.00", NULL);
-	ini->SetValue("LevelSkillExpMults", "fIllusion", "1.00", NULL);
-	ini->SetValue("LevelSkillExpMults", "fRestoration", "1.00", NULL);
-	ini->SetValue("LevelSkillExpMults", "fEnchanting", "1.00", NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsSkillExpGainMults[0]);
+	ini->SetValue("SkillExpGainMults", "fOneHanded", buffer, "#Set the Skill Experience Gained Multiplier.");
+	sprintf_s(buffer, "%.2f", settings.settingsSkillExpGainMults[1]);
+	ini->SetValue("SkillExpGainMults", "fTwoHanded", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsSkillExpGainMults[2]);
+	ini->SetValue("SkillExpGainMults", "fMarksman", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsSkillExpGainMults[3]);
+	ini->SetValue("SkillExpGainMults", "fBlock", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsSkillExpGainMults[4]);
+	ini->SetValue("SkillExpGainMults", "fSmithing", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsSkillExpGainMults[5]);
+	ini->SetValue("SkillExpGainMults", "fHeavyArmor", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsSkillExpGainMults[6]);
+	ini->SetValue("SkillExpGainMults", "fLightArmor", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsSkillExpGainMults[7]);
+	ini->SetValue("SkillExpGainMults", "fPickpocket", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsSkillExpGainMults[8]);
+	ini->SetValue("SkillExpGainMults", "fLockPicking", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsSkillExpGainMults[9]);
+	ini->SetValue("SkillExpGainMults", "fSneak", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsSkillExpGainMults[10]);
+	ini->SetValue("SkillExpGainMults", "fAlchemy", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsSkillExpGainMults[11]);
+	ini->SetValue("SkillExpGainMults", "fSpeechCraft", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsSkillExpGainMults[12]);
+	ini->SetValue("SkillExpGainMults", "fAlteration", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsSkillExpGainMults[13]);
+	ini->SetValue("SkillExpGainMults", "fConjuration", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsSkillExpGainMults[14]);
+	ini->SetValue("SkillExpGainMults", "fDestruction", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsSkillExpGainMults[15]);
+	ini->SetValue("SkillExpGainMults", "fIllusion", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsSkillExpGainMults[16]);
+	ini->SetValue("SkillExpGainMults", "fRestoration", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsSkillExpGainMults[17]);
+	ini->SetValue("SkillExpGainMults", "fEnchanting", buffer, NULL);
 
-	ini->SetValue("PerksAtLevelUp", "1", "1.00", "#Set the number of perks gained at each level up. If a specific level is not specified then the closest lower level setting is used.");
+	sprintf_s(buffer, "%.2f", settings.settingsLevelSkillExpMults[0]);
+	ini->SetValue("LevelSkillExpMults", "fOneHanded", buffer, "#Set the Skill Experience to Player's Character Experience Multipliers.");
+	sprintf_s(buffer, "%.2f", settings.settingsLevelSkillExpMults[1]);
+	ini->SetValue("LevelSkillExpMults", "fTwoHanded", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsLevelSkillExpMults[2]);
+	ini->SetValue("LevelSkillExpMults", "fMarksman", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsLevelSkillExpMults[3]);
+	ini->SetValue("LevelSkillExpMults", "fBlock", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsLevelSkillExpMults[4]);
+	ini->SetValue("LevelSkillExpMults", "fSmithing", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsLevelSkillExpMults[5]);
+	ini->SetValue("LevelSkillExpMults", "fHeavyArmor", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsLevelSkillExpMults[6]);
+	ini->SetValue("LevelSkillExpMults", "fLightArmor", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsLevelSkillExpMults[7]);
+	ini->SetValue("LevelSkillExpMults", "fPickpocket", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsLevelSkillExpMults[8]);
+	ini->SetValue("LevelSkillExpMults", "fLockPicking", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsLevelSkillExpMults[9]);
+	ini->SetValue("LevelSkillExpMults", "fSneak", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsLevelSkillExpMults[10]);
+	ini->SetValue("LevelSkillExpMults", "fAlchemy", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsLevelSkillExpMults[11]);
+	ini->SetValue("LevelSkillExpMults", "fSpeechCraft", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsLevelSkillExpMults[12]);
+	ini->SetValue("LevelSkillExpMults", "fAlteration", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsLevelSkillExpMults[13]);
+	ini->SetValue("LevelSkillExpMults", "fConjuration", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsLevelSkillExpMults[14]);
+	ini->SetValue("LevelSkillExpMults", "fDestruction", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsLevelSkillExpMults[15]);
+	ini->SetValue("LevelSkillExpMults", "fIllusion", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsLevelSkillExpMults[16]);
+	ini->SetValue("LevelSkillExpMults", "fRestoration", buffer, NULL);
+	sprintf_s(buffer, "%.2f", settings.settingsLevelSkillExpMults[17]);
+	ini->SetValue("LevelSkillExpMults", "fEnchanting", buffer, NULL);
 
-	ini->SetLongValue("HealthAtLevelUp", "1", 10, "#Set the number of health gained at each level up. If a specific level is not specified then the closest lower level setting is used.");
+	for (const auto& pair : settings.settingsPerksAtLevelUp)
+	{
+		char key[0x8];
+		char value[0x10];
+		sprintf_s(key, "%d", pair.first);
+		sprintf_s(value, "%.2f", pair.second);
+		if (pair.first == 1)
+			ini->SetValue("PerksAtLevelUp", key, value, "#Set the number of perks gained at each level up. If a specific level is not specified then the closest lower level setting is used.");
+		else
+			ini->SetValue("PerksAtLevelUp", key, value, NULL);
+	}
 
-	ini->SetLongValue("MagickaAtLevelUp", "1", 10, "#Set the number of magicka gained at each level up. If a specific level is not specified then the closest lower level setting is used.");
+	for (const auto& pair : settings.settingsHealthAtLevelUp)
+	{
+		char key[0x8];
+		sprintf_s(key, "%d", pair.first);
+		if (pair.first == 1)
+			ini->SetLongValue("HealthAtLevelUp", key, pair.second, "#Set the number of health gained at each level up. If a specific level is not specified then the closest lower level setting is used.");
+		else
+			ini->SetLongValue("HealthAtLevelUp", key, pair.second, NULL);
+	}
 
-	ini->SetLongValue("StaminaAtLevelUp", "1", 10, "#Set the number of stamina gained at each level up. If a specific level is not specified then the closest lower level setting is used.");
+	for (const auto& pair : settings.settingsMagickaAtLevelUp)
+	{
+		char key[0x8];
+		sprintf_s(key, "%d", pair.first);
+		if (pair.first == 1)
+			ini->SetLongValue("MagickaAtLevelUp", key, pair.second, "#Set the number of magicka gained at each level up. If a specific level is not specified then the closest lower level setting is used.");
+		else
+			ini->SetLongValue("MagickaAtLevelUp", key, pair.second, NULL);
+	}
 
-	ini->SetLongValue("CarryWeightAtHealthLevelUp", "1", 0, "#Set the number of carryweight gained at each health level up. If a specific level is not specified then the closest lower level setting is used.");
+	for (const auto& pair : settings.settingsStaminaAtLevelUp)
+	{
+		char key[0x8];
+		sprintf_s(key, "%d", pair.first);
+		if (pair.first == 1)
+			ini->SetLongValue("StaminaAtLevelUp", key, pair.second, "#Set the number of Stamina gained at each level up. If a specific level is not specified then the closest lower level setting is used.");
+		else
+			ini->SetLongValue("StaminaAtLevelUp", key, pair.second, NULL);
+	}
 
-	ini->SetLongValue("CarryWeightAtMagickaLevelUp", "1", 0, "#Set the number of carryweight gained at each magicka level up. If a specific level is not specified then the closest lower level setting is used.");
+	for (const auto& pair : settings.settingsCarryWeightAtHealthLevelUp)
+	{
+		char key[0x8];
+		sprintf_s(key, "%d", pair.first);
+		if (pair.first == 1)
+			ini->SetLongValue("CarryWeightAtHealthLevelUp", key, pair.second, "#Set the number of carryweight gained at each health level up. If a specific level is not specified then the closest lower level setting is used.");
+		else
+			ini->SetLongValue("CarryWeightAtHealthLevelUp", key, pair.second, NULL);
+	}
 
-	ini->SetLongValue("CarryWeightAtStaminaLevelUp", "1", 5, "#Set the number of carryweight gained at each stamina level up. If a specific level is not specified then the closest lower level setting is used.");
+	for (const auto& pair : settings.settingsCarryWeightAtMagickaLevelUp)
+	{
+		char key[0x8];
+		sprintf_s(key, "%d", pair.first);
+		if (pair.first == 1)
+			ini->SetLongValue("CarryWeightAtMagickaLevelUp", key, pair.second, "#Set the number of carryweight gained at each magicka level up. If a specific level is not specified then the closest lower level setting is used.");
+		else
+			ini->SetLongValue("CarryWeightAtMagickaLevelUp", key, pair.second, NULL);
+	}
+
+	for (const auto& pair : settings.settingsCarryWeightAtStaminaLevelUp)
+	{
+		char key[0x8];
+		sprintf_s(key, "%d", pair.first);
+		if (pair.first == 1)
+			ini->SetLongValue("CarryWeightAtStaminaLevelUp", key, pair.second, "#Set the number of carryweight gained at each stamina level up. If a specific level is not specified then the closest lower level setting is used.");
+		else
+			ini->SetLongValue("CarryWeightAtStaminaLevelUp", key, pair.second, NULL);
+	}
+
+	ini->SetBoolValue("LegenarySkill", "bLengenaryKeepSkillLevel", settings.settingsLegenarySkill.bLegenaryKeepSkillLevel, "#This option determines whether the legendary feature will reset the skill level.Set this option to true will make option \"iSkillLevelAfterLengenary\" have no effect.");
+	ini->SetBoolValue("LegenarySkill", "bShowLegenaryButton", settings.settingsLegenarySkill.bShowLegenaryButton, "#This option determines whether to display the legenary button in state menu when you meet the requirements of legendary skills.");
+	ini->SetLongValue("LegenarySkill", "iSkillLevelEnableLegenary", settings.settingsLegenarySkill.iSkillLevelEnableLegenary, "#This option determines the skill level required to make a skill legenary.");
+	ini->SetLongValue("LegenarySkill", "iSkillLevelAfterLengenary", settings.settingsLegenarySkill.iSkillLevelAfterLengenary, "#This option determines the level of a skill after making this skill legenary.Set this option to 0 will reset the skill level to default level.");
 
 #ifdef INVALID_CODE
 	std::string path = ".\\Data\\SKSE\\Plugin\\SkyrimUncapper.ini";
@@ -273,5 +376,8 @@ void Settings::SaveConfig(CSimpleIniA* ini,const std::string& path)
 	CreateDirectory(".\\Data\\SKSE", NULL);
 	CreateDirectory(".\\Data\\SKSE\\Plugin", NULL);
 #endif
+
 	ini->SaveFile(path.c_str());
+
+	_MESSAGE("finish updating ini file...");
 }

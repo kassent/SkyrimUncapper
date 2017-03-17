@@ -18,6 +18,15 @@ RelocAddr <uintptr_t> kHook_ModPerkPool_Ret = 0x008AA62B;
 RelocAddr <uintptr_t> kHook_SkillCapPatch_Ent = 0x006CD2F8;
 RelocAddr <uintptr_t> kHook_SkillCapPatch_Ret = 0x006CD301;
 
+RelocAddr <uintptr_t> kHook_ExecuteLegendarySkill_Ent = 0x08AE3BD;//get it when legendary skill by trace setbaseav.
+RelocAddr <uintptr_t> kHook_ExecuteLegendarySkill_Ret = 0x08AE3C3;
+
+RelocAddr <uintptr_t> kHook_CheckConditionForLegendarySkill_Ent = 0x08A4425;
+RelocAddr <uintptr_t> kHook_CheckConditionForLegendarySkill_Ret = 0x08A4438;
+
+RelocAddr <uintptr_t> kHook_ShowLegendaryButton_Ent = 0x08A6226;
+RelocAddr <uintptr_t> kHook_ShowLegendaryButton_Ret = 0x08A6243;
+
 typedef void(*_ImproveSkillByTraining)(void* pPlayer, UInt32 skillID, UInt32 count);
 RelocAddr <_ImproveSkillByTraining> ImproveSkillByTraining_Original = 0x0689AC0;
 
@@ -114,7 +123,7 @@ void ImprovePlayerSkillPoints_Hook(PlayerSkills* skillData, UInt32 skillID, floa
 		exp *= settings.settingsSkillExpGainMults[skillID - 6];
 	}
 
-#ifdef INVALID_CODE
+#ifdef _DEBUG
 	_MESSAGE("function: %s", __FUNCTION__);
 	void* actorValue = static_cast<char*>(*g_pCharacter) + 0xB0;
 	for (size_t i = 0; i <= 8; ++i)
@@ -129,11 +138,11 @@ float ImproveLevelExpBySkillLevel_Hook(float skillLevel, UInt32 skillID)
 	float skillMult = 1.0f;
 	if ((skillID >= 6) && (skillID <= 23))
 		skillMult = settings.settingsLevelSkillExpMults[skillID - 6];
-	float result = ImproveLevelExpBySkillLevel_Original(skillLevel);
+	float result = ImproveLevelExpBySkillLevel_Original(skillLevel) * skillMult;
 #ifdef _DEBUG
 	_MESSAGE("function:%s, skillId:%d, skillLevel:%.2f, skillMult:%.2f, result:%.2f", __FUNCTION__, skillID, skillLevel, skillMult, result);
 #endif
-	return result * skillMult;
+	return result;
 }
 
 UInt64 ImproveAttributeWhenLevelUp_Hook(void* unk0, UInt8 unk1)
@@ -211,7 +220,7 @@ float GetSkillCap_Hook(UInt32 skillID)
 	if ((skillID >= 6) && (skillID <= 23))
 	{
 #ifdef _DEBUG
-		_MESSAGE("function: %s, skillCap: %.2f", __FUNCTION__, settings.settingsSkillCaps[skillID - 6]);
+		_MESSAGE("function: %s, skillID: %d, skillCap: %d", __FUNCTION__, skillID, settings.settingsSkillCaps[skillID - 6]);
 #endif
 		return settings.settingsSkillCaps[skillID - 6];
 	}
@@ -233,11 +242,56 @@ float GetCurrentActorValue_Hook(void* avo, UInt32 skillID)   //PC&NPC
 		UInt32 skillFormulaCap = settings.settingsSkillFormulaCaps[skillID - 6];
 		skillLevel = (skillLevel > skillFormulaCap) ? skillFormulaCap : skillLevel;
 #ifdef _DEBUG
-		_MESSAGE("function: %s, skillID: %d, skillLevel:%.2f, skillFormulaCap: %d, this:%p", __FUNCTION__, skillID, skillLevel, settings.settingsSkillFormulaCaps[skillID - 6], avo);
+		//_MESSAGE("function: %s, skillID: %d, skillLevel:%.2f, skillFormulaCap: %d, this:%p", __FUNCTION__, skillID, skillLevel, settings.settingsSkillFormulaCaps[skillID - 6], avo);
 #endif
 	}
 	return skillLevel;
 }
+
+void ResetLegendarySkillLevel_Hook(float baseLevel, UInt32 skillID)  //设置传奇后技能等级.
+{
+	static RelocPtr<float> resetLevel = 0x1D8E168;
+	static float originalSetting = *resetLevel;
+	if ((skillID >= 6) && (skillID <= 23))
+	{
+		if (settings.settingsLegenarySkill.bLegenaryKeepSkillLevel)
+		{
+			typedef float(*Fn)(void*, UInt32);
+			RelocAddr <Fn> fn = 0x0608540;	//GetBaseActorValue
+			*resetLevel = fn(*(char**)(g_pCharacter.GetPtr()) + 0xB0, skillID);
+		}
+		else
+		{
+			UInt32 legenaryLevel = settings.settingsLegenarySkill.iSkillLevelAfterLengenary;
+			*resetLevel = (!legenaryLevel) ? legenaryLevel : originalSetting;
+		}
+	}
+	else
+		*resetLevel = originalSetting;
+#ifdef _DEBUG
+	_MESSAGE("function: %s, resetLegenaryLevel: %.2f", __FUNCTION__, *resetLevel);
+#endif
+}
+
+bool CheckConditionForLegendarySkill_Hook(void* pActorValueOwner, UInt32 skillID)
+{
+	typedef float(*Fn)(void*, UInt32);
+	RelocAddr <Fn> fn = 0x0608540;	//GetBaseActorValue
+	float skillLevel = fn(*(char**)(g_pCharacter.GetPtr()) + 0xB0, skillID);
+	return (skillLevel >= settings.settingsLegenarySkill.iSkillLevelEnableLegenary) ? true : false;
+}
+
+bool ShowLegendaryButton_Hook(UInt32 skillID)
+{
+	typedef float(*Fn)(void*, UInt32);
+	RelocAddr <Fn> fn = 0x0608540;	//GetBaseActorValue
+	float skillLevel = fn(*(char**)(g_pCharacter.GetPtr()) + 0xB0, skillID);
+	if (skillLevel >= settings.settingsLegenarySkill.iSkillLevelEnableLegenary && settings.settingsLegenarySkill.bShowLegenaryButton)
+		return true;
+	return false;
+}
+
+
 
 void Hook_Skill_Init()
 {
@@ -258,9 +312,12 @@ void Hook_Skill_Commit()
 				Xbyak::Label retnLabel;
 
 				push(rcx);
-				sub(rsp, 0x28);
+				push(rdx);
+				mov(rdx, rsi);
+				sub(rsp, 0x20);
 				call((void *)&ImproveLevelExpBySkillLevel_Hook);
-				add(rsp, 0x28);
+				add(rsp, 0x20);
+				pop(rdx);
 				pop(rcx);
 				jmp(ptr[rip + retnLabel]);
 
@@ -412,7 +469,84 @@ void Hook_Skill_Commit()
 		GetCurrentActorValue_Original = (_GetCurrentActorValue)codeBuf;
 
 		g_branchTrampoline.Write6Branch(GetCurrentActorValue.GetUIntPtr(), (uintptr_t)GetCurrentActorValue_Hook);
+
 	}
+
+	{
+		struct ExecuteLegendarySkill_Code : Xbyak::CodeGenerator
+		{
+			ExecuteLegendarySkill_Code(void * buf) : Xbyak::CodeGenerator(4096, buf)
+			{
+				Xbyak::Label retnLabel;
+
+				mov(edx, ptr[rsi + 0x1C]);
+				call((void*)&ResetLegendarySkillLevel_Hook);
+
+				jmp(ptr[rip + retnLabel]);
+
+			L(retnLabel);
+				dq(kHook_ExecuteLegendarySkill_Ret.GetUIntPtr());
+			}
+		};
+
+		void * codeBuf = g_localTrampoline.StartAlloc();
+		ExecuteLegendarySkill_Code code(codeBuf);
+		g_localTrampoline.EndAlloc(code.getCurr());
+
+		g_branchTrampoline.Write6Branch(kHook_ExecuteLegendarySkill_Ent.GetUIntPtr(), uintptr_t(code.getCode()));
+	}
+
+	{
+		struct CheckConditionForLegendarySkill_Code : Xbyak::CodeGenerator
+		{
+			CheckConditionForLegendarySkill_Code(void * buf) : Xbyak::CodeGenerator(4096, buf)
+			{
+				Xbyak::Label retnLabel;
+
+				mov(edx, eax);
+				lea(rcx, ptr[rdi + 0xB0]);
+				call((void*)&CheckConditionForLegendarySkill_Hook);
+				cmp(al, 1);
+
+				jmp(ptr[rip + retnLabel]);
+
+			L(retnLabel);
+				dq(kHook_CheckConditionForLegendarySkill_Ret.GetUIntPtr());
+			}
+		};
+
+		void * codeBuf = g_localTrampoline.StartAlloc();
+		CheckConditionForLegendarySkill_Code code(codeBuf);
+		g_localTrampoline.EndAlloc(code.getCurr());
+
+		g_branchTrampoline.Write6Branch(kHook_CheckConditionForLegendarySkill_Ent.GetUIntPtr(), uintptr_t(code.getCode()));
+	}
+
+	{
+		struct ShowLegendaryButton_Code : Xbyak::CodeGenerator
+		{
+			ShowLegendaryButton_Code(void * buf) : Xbyak::CodeGenerator(4096, buf)
+			{
+				Xbyak::Label retnLabel;
+				mov(ecx, esi);
+				call((void*)&ShowLegendaryButton_Hook);
+				cmp(al, 1);
+
+				jmp(ptr[rip + retnLabel]);
+
+			L(retnLabel);
+				dq(kHook_ShowLegendaryButton_Ret.GetUIntPtr());
+			}
+		};
+
+		void * codeBuf = g_localTrampoline.StartAlloc();
+		ShowLegendaryButton_Code code(codeBuf);
+		g_localTrampoline.EndAlloc(code.getCurr());
+
+		g_branchTrampoline.Write6Branch(kHook_ShowLegendaryButton_Ent.GetUIntPtr(), uintptr_t(code.getCode()));
+
+	}
+
 #ifdef INVALID_CODE
 	{
 		//fix it....
