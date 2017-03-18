@@ -158,7 +158,7 @@ void Settings::ReadConfig()
 	}
 
 	settings.settingsLegenarySkill.bLegenaryKeepSkillLevel = ini.GetBoolValue("LegenarySkill", "bLengenaryKeepSkillLevel", false);
-	settings.settingsLegenarySkill.bShowLegenaryButton = ini.GetBoolValue("LegenarySkill", "bShowLegenaryButton", true);
+	settings.settingsLegenarySkill.bHideLegendaryButton = ini.GetBoolValue("LegenarySkill", "bHideLegendaryButton", true);
 	settings.settingsLegenarySkill.iSkillLevelEnableLegenary = ini.GetLongValue("LegenarySkill", "iSkillLevelEnableLegenary", 100);
 	settings.settingsLegenarySkill.iSkillLevelAfterLengenary = ini.GetLongValue("LegenarySkill", "iSkillLevelAfterLengenary", 15);
 
@@ -366,7 +366,7 @@ void Settings::SaveConfig(CSimpleIniA* ini,const std::string& path)
 	}
 
 	ini->SetBoolValue("LegenarySkill", "bLengenaryKeepSkillLevel", settings.settingsLegenarySkill.bLegenaryKeepSkillLevel, "#This option determines whether the legendary feature will reset the skill level.Set this option to true will make option \"iSkillLevelAfterLengenary\" have no effect.");
-	ini->SetBoolValue("LegenarySkill", "bShowLegenaryButton", settings.settingsLegenarySkill.bShowLegenaryButton, "#This option determines whether to display the legenary button in state menu when you meet the requirements of legendary skills.");
+	ini->SetBoolValue("LegenarySkill", "bHideLegendaryButton", settings.settingsLegenarySkill.bHideLegendaryButton, "#This option determines whether to display the legenary button in state menu when you meet the requirements of legendary skills.");
 	ini->SetLongValue("LegenarySkill", "iSkillLevelEnableLegenary", settings.settingsLegenarySkill.iSkillLevelEnableLegenary, "#This option determines the skill level required to make a skill legenary.");
 	ini->SetLongValue("LegenarySkill", "iSkillLevelAfterLengenary", settings.settingsLegenarySkill.iSkillLevelAfterLengenary, "#This option determines the level of a skill after making this skill legenary.Set this option to 0 will reset the skill level to default level.");
 

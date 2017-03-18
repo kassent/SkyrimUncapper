@@ -6,6 +6,7 @@
 #include <algorithm>
 
 #define CONFIG_VERSION 2
+#define REQUIRED_VERSION "1.4.2.0"
 
 template<typename T>
 struct SettingList : public std::map < UInt32, T>
@@ -64,7 +65,7 @@ struct SettingsGeneral
 struct SettingsLegenarySkill
 {
 	bool				bLegenaryKeepSkillLevel;
-	bool				bShowLegenaryButton;
+	bool				bHideLegendaryButton;
 	UInt32				iSkillLevelEnableLegenary;
 	UInt32				iSkillLevelAfterLengenary;
 };

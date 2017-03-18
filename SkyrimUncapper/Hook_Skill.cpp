@@ -7,6 +7,7 @@
 using LevelData = PlayerSkills::StatData::LevelData;
 
 RelocPtr <void*>			g_pCharacter		   = 0x02EC86A8;
+RelocPtr <char>				g_skyrimVersion		   = 0x0150A9F8;
 /*
 RelocPtr <UInt8>			g_numPerkPoints = reinterpret_cast<uintptr_t>(*g_pCharacter.GetPtr()) + 0xB01;
 RelocPtr <PlayerSkills>		g_playerSkills = reinterpret_cast<uintptr_t>(*g_pCharacter.GetPtr()) + 0x9B0;
@@ -24,8 +25,8 @@ RelocAddr <uintptr_t> kHook_ExecuteLegendarySkill_Ret = 0x08AE3C3;
 RelocAddr <uintptr_t> kHook_CheckConditionForLegendarySkill_Ent = 0x08A4425;
 RelocAddr <uintptr_t> kHook_CheckConditionForLegendarySkill_Ret = 0x08A4438;
 
-RelocAddr <uintptr_t> kHook_ShowLegendaryButton_Ent = 0x08A6226;
-RelocAddr <uintptr_t> kHook_ShowLegendaryButton_Ret = 0x08A6243;
+RelocAddr <uintptr_t> kHook_HideLegendaryButton_Ent = 0x08A6226;
+RelocAddr <uintptr_t> kHook_HideLegendaryButton_Ret = 0x08A6243;
 
 typedef void(*_ImproveSkillByTraining)(void* pPlayer, UInt32 skillID, UInt32 count);
 RelocAddr <_ImproveSkillByTraining> ImproveSkillByTraining_Original = 0x0689AC0;
@@ -281,12 +282,12 @@ bool CheckConditionForLegendarySkill_Hook(void* pActorValueOwner, UInt32 skillID
 	return (skillLevel >= settings.settingsLegenarySkill.iSkillLevelEnableLegenary) ? true : false;
 }
 
-bool ShowLegendaryButton_Hook(UInt32 skillID)
+bool HideLegendaryButton_Hook(UInt32 skillID)
 {
 	typedef float(*Fn)(void*, UInt32);
 	RelocAddr <Fn> fn = 0x0608540;	//GetBaseActorValue
 	float skillLevel = fn(*(char**)(g_pCharacter.GetPtr()) + 0xB0, skillID);
-	if (skillLevel >= settings.settingsLegenarySkill.iSkillLevelEnableLegenary && settings.settingsLegenarySkill.bShowLegenaryButton)
+	if (skillLevel >= settings.settingsLegenarySkill.iSkillLevelEnableLegenary && settings.settingsLegenarySkill.bHideLegendaryButton)
 		return true;
 	return false;
 }
@@ -300,6 +301,20 @@ void Hook_Skill_Init()
 
 void Hook_Skill_Commit()
 {
+	char skyrimVersionInfo[0x10];
+	memset(skyrimVersionInfo, NULL, 0x10);
+	memcpy(skyrimVersionInfo, g_skyrimVersion, 0xF);
+	skyrimVersionInfo[0xF] = '\0';
+
+	char* requiredVersion = REQUIRED_VERSION;
+	char warningInfo[0x64];
+	sprintf_s(warningInfo, "SkyrimSE.exe's current version is unsupported, required version is %s", requiredVersion);
+	if (strstr(skyrimVersionInfo, requiredVersion) == NULL)
+	{
+		MessageBox(NULL, warningInfo, "SkyrimUncapper", MB_OK);
+		return;
+	}
+
 	settings.ReadConfig();
 
 	g_branchTrampoline.Write6Branch(ImproveSkillByTraining_Original.GetUIntPtr(), (uintptr_t)ImproveSkillByTraining_Hook);
@@ -523,27 +538,27 @@ void Hook_Skill_Commit()
 	}
 
 	{
-		struct ShowLegendaryButton_Code : Xbyak::CodeGenerator
+		struct HideLegendaryButton_Code : Xbyak::CodeGenerator
 		{
-			ShowLegendaryButton_Code(void * buf) : Xbyak::CodeGenerator(4096, buf)
+			HideLegendaryButton_Code(void * buf) : Xbyak::CodeGenerator(4096, buf)
 			{
 				Xbyak::Label retnLabel;
 				mov(ecx, esi);
-				call((void*)&ShowLegendaryButton_Hook);
+				call((void*)&HideLegendaryButton_Hook);
 				cmp(al, 1);
 
 				jmp(ptr[rip + retnLabel]);
 
 			L(retnLabel);
-				dq(kHook_ShowLegendaryButton_Ret.GetUIntPtr());
+				dq(kHook_HideLegendaryButton_Ret.GetUIntPtr());
 			}
 		};
 
 		void * codeBuf = g_localTrampoline.StartAlloc();
-		ShowLegendaryButton_Code code(codeBuf);
+		HideLegendaryButton_Code code(codeBuf);
 		g_localTrampoline.EndAlloc(code.getCurr());
 
-		g_branchTrampoline.Write6Branch(kHook_ShowLegendaryButton_Ent.GetUIntPtr(), uintptr_t(code.getCode()));
+		g_branchTrampoline.Write6Branch(kHook_HideLegendaryButton_Ent.GetUIntPtr(), uintptr_t(code.getCode()));
 
 	}
 
