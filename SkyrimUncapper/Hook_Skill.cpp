@@ -264,7 +264,7 @@ void ResetLegendarySkillLevel_Hook(float baseLevel, UInt32 skillID)  //…Ë÷√¥´∆Ê∫
 		else
 		{
 			UInt32 legenaryLevel = settings.settingsLegenarySkill.iSkillLevelAfterLengenary;
-			*resetLevel = (!legenaryLevel) ? legenaryLevel : originalSetting;
+			*resetLevel = (!legenaryLevel) ? originalSetting : legenaryLevel;
 		}
 	}
 	else
@@ -287,7 +287,7 @@ bool HideLegendaryButton_Hook(UInt32 skillID)
 	typedef float(*Fn)(void*, UInt32);
 	RelocAddr <Fn> fn = 0x0608540;	//GetBaseActorValue
 	float skillLevel = fn(*(char**)(g_pCharacter.GetPtr()) + 0xB0, skillID);
-	if (skillLevel >= settings.settingsLegenarySkill.iSkillLevelEnableLegenary && settings.settingsLegenarySkill.bHideLegendaryButton)
+	if (skillLevel >= settings.settingsLegenarySkill.iSkillLevelEnableLegenary && !settings.settingsLegenarySkill.bHideLegendaryButton)
 		return true;
 	return false;
 }

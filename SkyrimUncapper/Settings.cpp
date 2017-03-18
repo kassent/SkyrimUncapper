@@ -112,55 +112,55 @@ void Settings::ReadConfig()
 	{
 		for (auto& element : keys)
 			settingsPerksAtLevelUp.insert({ atoi(element.pItem), atof(ini.GetValue("PerksAtLevelUp", element.pItem,	"1.00")) });
-		settingsPerksAtLevelUp.insert({ 1, 1.00f });
 	}
+	settingsPerksAtLevelUp.insert({ 1, 1.00f });
 
 	if (ini.GetAllKeys("HealthAtLevelUp", keys))
 	{
 		for (auto& element : keys)
 			settingsHealthAtLevelUp.insert({ atoi(element.pItem), ini.GetLongValue("HealthAtLevelUp", element.pItem,	10) });
-		settingsHealthAtLevelUp.insert({ 1, 10 });
 	}
+	settingsHealthAtLevelUp.insert({ 1, 10 });
 
 	if (ini.GetAllKeys("MagickaAtLevelUp", keys))
 	{
 		for (auto& element : keys)
 			settingsMagickaAtLevelUp.insert({ atoi(element.pItem), ini.GetLongValue("MagickaAtLevelUp", element.pItem,	10) });
-		settingsMagickaAtLevelUp.insert({ 1, 10 });
 	}
+	settingsMagickaAtLevelUp.insert({ 1, 10 });
 
 	if (ini.GetAllKeys("StaminaAtLevelUp", keys))
 	{
 		for (auto& element : keys)
 			settingsStaminaAtLevelUp.insert({ atoi(element.pItem), ini.GetLongValue("StaminaAtLevelUp", element.pItem,	10) });
-		settingsStaminaAtLevelUp.insert({ 1, 10 });
 	}
+	settingsStaminaAtLevelUp.insert({ 1, 10 });
 
 	if (ini.GetAllKeys("CarryWeightAtHealthLevelUp", keys))
 	{
 		for (auto& element : keys)
 			settingsCarryWeightAtHealthLevelUp.insert({ atoi(element.pItem), ini.GetLongValue("CarryWeightAtHealthLevelUp", element.pItem,	5) });
-		settingsCarryWeightAtHealthLevelUp.insert({ 1, 0 });
 	}
+	settingsCarryWeightAtHealthLevelUp.insert({ 1, 0 });
 
 	if (ini.GetAllKeys("CarryWeightAtStaminaLevelUp", keys))
 	{
 		for (auto& element : keys)
 			settingsCarryWeightAtStaminaLevelUp.insert({ atoi(element.pItem), ini.GetLongValue("CarryWeightAtStaminaLevelUp", element.pItem,	5) });
-		settingsCarryWeightAtStaminaLevelUp.insert({ 1, 5 });
 	}
+	settingsCarryWeightAtStaminaLevelUp.insert({ 1, 5 });
 
 	if (ini.GetAllKeys("CarryWeightAtMagickaLevelUp", keys))
 	{
 		for (auto& element : keys)
 			settingsCarryWeightAtMagickaLevelUp.insert({ atoi(element.pItem), ini.GetLongValue("CarryWeightAtMagickaLevelUp", element.pItem,	5) });
-		settingsCarryWeightAtMagickaLevelUp.insert({ 1, 0 });
 	}
+	settingsCarryWeightAtMagickaLevelUp.insert({ 1, 0 });
 
 	settings.settingsLegenarySkill.bLegenaryKeepSkillLevel = ini.GetBoolValue("LegenarySkill", "bLengenaryKeepSkillLevel", false);
 	settings.settingsLegenarySkill.bHideLegendaryButton = ini.GetBoolValue("LegenarySkill", "bHideLegendaryButton", true);
 	settings.settingsLegenarySkill.iSkillLevelEnableLegenary = ini.GetLongValue("LegenarySkill", "iSkillLevelEnableLegenary", 100);
-	settings.settingsLegenarySkill.iSkillLevelAfterLengenary = ini.GetLongValue("LegenarySkill", "iSkillLevelAfterLengenary", 15);
+	settings.settingsLegenarySkill.iSkillLevelAfterLengenary = ini.GetLongValue("LegenarySkill", "iSkillLevelAfterLengenary", 0);
 
 	if (settingsGeneral.version != CONFIG_VERSION)
 	{
