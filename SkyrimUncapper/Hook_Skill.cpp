@@ -7,14 +7,14 @@
 using LevelData = PlayerSkills::StatData::LevelData;
 
 RelocPtr <void*>			g_pCharacter		   = 0x02EC86A8;
-RelocPtr <char>				g_skyrimVersion		   = 0x0150A9F8;
-/*
-RelocPtr <UInt8>			g_numPerkPoints = reinterpret_cast<uintptr_t>(*g_pCharacter.GetPtr()) + 0xB01;
-RelocPtr <PlayerSkills>		g_playerSkills = reinterpret_cast<uintptr_t>(*g_pCharacter.GetPtr()) + 0x9B0;
-RelocPtr <ActorValueOwner>	g_actorValueOwner = reinterpret_cast<uintptr_t>(*g_pCharacter.GetPtr()) + 0xB0;
-*/
-RelocAddr <uintptr_t> kHook_ModPerkPool_Ent = 0x008AA60F;
-RelocAddr <uintptr_t> kHook_ModPerkPool_Ret = 0x008AA62B;
+
+//RelocPtr <char>				g_skyrimVersion		= 0x0150A9F8;
+//RelocPtr <UInt8>				g_numPerkPoints		= reinterpret_cast<uintptr_t>(*g_pCharacter.GetPtr()) + 0xB01;
+//RelocPtr <PlayerSkills>		g_playerSkills	    = reinterpret_cast<uintptr_t>(*g_pCharacter.GetPtr()) + 0x9B0;
+//RelocPtr <ActorValueOwner>	g_actorValueOwner   = reinterpret_cast<uintptr_t>(*g_pCharacter.GetPtr()) + 0xB0;
+
+RelocAddr <uintptr_t> kHook_ModifyPerkPool_Ent = 0x008AA60F;
+RelocAddr <uintptr_t> kHook_ModifyPerkPool_Ret = 0x008AA62B;
 
 RelocAddr <uintptr_t> kHook_SkillCapPatch_Ent = 0x006CD2F8;
 RelocAddr <uintptr_t> kHook_SkillCapPatch_Ret = 0x006CD301;
@@ -51,6 +51,9 @@ RelocAddr <_ImproveLevelExpBySkillLevel> ImproveLevelExpBySkillLevel_Original = 
 typedef float(*_GetCurrentActorValue)(void*, UInt32);
 RelocAddr <_GetCurrentActorValue> GetCurrentActorValue = 0x0608370;
 _GetCurrentActorValue GetCurrentActorValue_Original = nullptr;
+
+typedef float(*_GetBaseActorValue)(void*, UInt32);
+RelocAddr <_GetBaseActorValue> GetBaseActorValue = 0x0608540;	//GetBaseActorValue
 
 
 float CalculateSkillExpForLevel(UInt32 skillID, float skillLevel)
@@ -94,9 +97,7 @@ void ImproveSkillByTraining_Hook(void* pPlayer, UInt32 skillID, UInt32 count)
 			skillProgression = 0.0f;
 		for (UInt32 i = 0; i < count; ++i)
 		{
-			typedef float(*Fn)(void*, UInt32);
-			RelocAddr <Fn> fn = 0x0608540;	//GetBaseActorValue
-			float skillLevel = fn(*(char**)(g_pCharacter.GetPtr()) + 0xB0, skillID);
+			float skillLevel = GetBaseActorValue((char*)(*g_pCharacter) + 0xB0, skillID);
 			float expRequired = CalculateSkillExpForLevel(skillID, skillLevel);
 #ifdef _DEBUG
 			_MESSAGE("maxPoints:%.2f, expRequired:%.2f", levelData->pointsMax, expRequired);
@@ -121,7 +122,9 @@ void ImprovePlayerSkillPoints_Hook(PlayerSkills* skillData, UInt32 skillID, floa
 #ifdef _DEBUG
 		_MESSAGE("function: %s, skillID: %d, SkillExpGainMults: %.2f", __FUNCTION__, skillID, settings.settingsSkillExpGainMults[skillID - 6]);
 #endif
-		exp *= settings.settingsSkillExpGainMults[skillID - 6];
+		UInt32 baseSkillLevel = static_cast<UInt32>(GetBaseActorValue((char*)(*g_pCharacter) + 0xB0, skillID));
+		float skillMult = settings.settingsSkillExpGainMultsWithSkills[skillID - 6].GetValue(baseSkillLevel);
+		exp *= settings.settingsSkillExpGainMults[skillID - 6] * skillMult;
 	}
 
 #ifdef _DEBUG
@@ -136,10 +139,14 @@ void ImprovePlayerSkillPoints_Hook(PlayerSkills* skillData, UInt32 skillID, floa
 
 float ImproveLevelExpBySkillLevel_Hook(float skillLevel, UInt32 skillID)
 {
-	float skillMult = 1.0f;
+	float baseMult = 1.0f, skillMult = 1.0f;
 	if ((skillID >= 6) && (skillID <= 23))
-		skillMult = settings.settingsLevelSkillExpMults[skillID - 6];
-	float result = ImproveLevelExpBySkillLevel_Original(skillLevel) * skillMult;
+	{
+		baseMult = settings.settingsLevelSkillExpMults[skillID - 6];
+		UInt32 baseSkillLevel = static_cast<UInt32>(GetBaseActorValue((char*)(*g_pCharacter) + 0xB0, skillID));
+		skillMult = settings.settingsLevelSkillExpMultsWithSkills[skillID - 6].GetValue(baseSkillLevel);
+	}
+	float result = ImproveLevelExpBySkillLevel_Original(skillLevel) * baseMult * skillMult;
 #ifdef _DEBUG
 	_MESSAGE("function:%s, skillId:%d, skillLevel:%.2f, skillMult:%.2f, result:%.2f", __FUNCTION__, skillID, skillLevel, skillMult, result);
 #endif
@@ -193,7 +200,7 @@ UInt64 ImproveAttributeWhenLevelUp_Hook(void* unk0, UInt8 unk1)
 	return ImproveAttributeWhenLevelUp_Original(unk0, unk1);
 }
 
-void ModPerkPool_Hook(SInt8 count)
+void ModifyPerkPool_Hook(SInt8 count)
 {
 	UInt8* points = *reinterpret_cast<UInt8**>(g_pCharacter.GetPtr()) + 0xB01;
 	if (count > 0) //AddPerkPoints
@@ -255,39 +262,31 @@ void ResetLegendarySkillLevel_Hook(float baseLevel, UInt32 skillID)  //ÉèÖÃ´«Ææº
 	static float originalSetting = *resetLevel;
 	if ((skillID >= 6) && (skillID <= 23))
 	{
-		if (settings.settingsLegenarySkill.bLegenaryKeepSkillLevel)
-		{
-			typedef float(*Fn)(void*, UInt32);
-			RelocAddr <Fn> fn = 0x0608540;	//GetBaseActorValue
-			*resetLevel = fn(*(char**)(g_pCharacter.GetPtr()) + 0xB0, skillID);
-		}
+		if (settings.settingsLegendarySkill.bLegendaryKeepSkillLevel)
+			*resetLevel = GetBaseActorValue(*(char**)(g_pCharacter.GetPtr()) + 0xB0, skillID);
 		else
 		{
-			UInt32 legenaryLevel = settings.settingsLegenarySkill.iSkillLevelAfterLengenary;
-			*resetLevel = (!legenaryLevel) ? originalSetting : legenaryLevel;
+			UInt32 LegendaryLevel = settings.settingsLegendarySkill.iSkillLevelAfterLengenary;
+			*resetLevel = (!LegendaryLevel) ? originalSetting : LegendaryLevel;
 		}
 	}
 	else
 		*resetLevel = originalSetting;
 #ifdef _DEBUG
-	_MESSAGE("function: %s, resetLegenaryLevel: %.2f", __FUNCTION__, *resetLevel);
+	_MESSAGE("function: %s, resetLegendaryLevel: %.2f", __FUNCTION__, *resetLevel);
 #endif
 }
 
 bool CheckConditionForLegendarySkill_Hook(void* pActorValueOwner, UInt32 skillID)
 {
-	typedef float(*Fn)(void*, UInt32);
-	RelocAddr <Fn> fn = 0x0608540;	//GetBaseActorValue
-	float skillLevel = fn(*(char**)(g_pCharacter.GetPtr()) + 0xB0, skillID);
-	return (skillLevel >= settings.settingsLegenarySkill.iSkillLevelEnableLegenary) ? true : false;
+	float skillLevel = GetBaseActorValue(*(char**)(g_pCharacter.GetPtr()) + 0xB0, skillID);
+	return (skillLevel >= settings.settingsLegendarySkill.iSkillLevelEnableLegendary) ? true : false;
 }
 
 bool HideLegendaryButton_Hook(UInt32 skillID)
 {
-	typedef float(*Fn)(void*, UInt32);
-	RelocAddr <Fn> fn = 0x0608540;	//GetBaseActorValue
-	float skillLevel = fn(*(char**)(g_pCharacter.GetPtr()) + 0xB0, skillID);
-	if (skillLevel >= settings.settingsLegenarySkill.iSkillLevelEnableLegenary && !settings.settingsLegenarySkill.bHideLegendaryButton)
+	float skillLevel = GetBaseActorValue(*(char**)(g_pCharacter.GetPtr()) + 0xB0, skillID);
+	if (skillLevel >= settings.settingsLegendarySkill.iSkillLevelEnableLegendary && !settings.settingsLegendarySkill.bHideLegendaryButton)
 		return true;
 	return false;
 }
@@ -301,22 +300,6 @@ void Hook_Skill_Init()
 
 void Hook_Skill_Commit()
 {
-	char skyrimVersionInfo[0x10];
-	memset(skyrimVersionInfo, NULL, 0x10);
-	memcpy(skyrimVersionInfo, g_skyrimVersion, 0xF);
-	skyrimVersionInfo[0xF] = '\0';
-
-	char* requiredVersion = REQUIRED_VERSION;
-	char warningInfo[0x64];
-	sprintf_s(warningInfo, "SkyrimSE.exe's current version is unsupported, required version is %s", requiredVersion);
-	if (strstr(skyrimVersionInfo, requiredVersion) == NULL)
-	{
-		MessageBox(NULL, warningInfo, "SkyrimUncapper", MB_OK);
-		return;
-	}
-
-	settings.ReadConfig();
-
 	g_branchTrampoline.Write6Branch(ImproveSkillByTraining_Original.GetUIntPtr(), (uintptr_t)ImproveSkillByTraining_Hook);
 
 	{
@@ -350,28 +333,28 @@ void Hook_Skill_Commit()
 
 	{
 
-		struct ModPerkPool_Code : Xbyak::CodeGenerator
+		struct ModifyPerkPool_Code : Xbyak::CodeGenerator
 		{
-			ModPerkPool_Code(void * buf) : Xbyak::CodeGenerator(4096, buf)
+			ModifyPerkPool_Code(void * buf) : Xbyak::CodeGenerator(4096, buf)
 			{
 				Xbyak::Label retnLabel;
 
 				mov(rcx, rbx);
 				sub(rsp, 0x20);
-				call((void *)&ModPerkPool_Hook);
+				call((void *)&ModifyPerkPool_Hook);
 				add(rsp, 0x20);
 				jmp(ptr[rip + retnLabel]);
 
 			L(retnLabel);
-				dq(kHook_ModPerkPool_Ret.GetUIntPtr());
+				dq(kHook_ModifyPerkPool_Ret.GetUIntPtr());
 			}
 		};
 
 		void * codeBuf = g_localTrampoline.StartAlloc();
-		ModPerkPool_Code code(codeBuf);
+		ModifyPerkPool_Code code(codeBuf);
 		g_localTrampoline.EndAlloc(code.getCurr());
 
-		g_branchTrampoline.Write5Branch(kHook_ModPerkPool_Ent.GetUIntPtr(), uintptr_t(code.getCode()));
+		g_branchTrampoline.Write5Branch(kHook_ModifyPerkPool_Ent.GetUIntPtr(), uintptr_t(code.getCode()));
 	}
 
 	{

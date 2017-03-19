@@ -119,6 +119,9 @@
       <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)\..</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <UndefineAllPreprocessorDefinitions>false</UndefineAllPreprocessorDefinitions>
+      <PreprocessToFile>false</PreprocessToFile>
+      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -133,6 +136,7 @@
     <ClInclude Include="BranchTrampoline.h" />
     <ClInclude Include="Hook_Skill.h" />
     <ClInclude Include="Relocation.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="SafeWrite.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="SimpleIni.h" />
@@ -158,6 +162,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="SkyrimUncapper.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

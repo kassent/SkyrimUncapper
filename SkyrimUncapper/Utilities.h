@@ -1,6 +1,6 @@
 #pragma once
 
-#include "f4se_common/Relocation.h"
+#include "Relocation.h"
 //#include <vector>
 
 
@@ -80,6 +80,7 @@ std::string GetRuntimeName();
 const std::string & GetRuntimeDirectory();
 
 std::string GetCurrentDLLDirectory();
+bool  GetFileVersion(const std::string& szModuleName, std::string& RetStr);
 
 const std::string & GetConfigPath();
 std::string GetConfigOption(const char * section, const char * key);

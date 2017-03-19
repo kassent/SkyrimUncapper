@@ -5,8 +5,7 @@
 #include <string>
 #include <algorithm>
 
-#define CONFIG_VERSION 2
-#define REQUIRED_VERSION "1.4.2.0"
+#define CONFIG_VERSION 3
 
 template<typename T>
 struct SettingList : public std::map < UInt32, T>
@@ -62,23 +61,27 @@ struct SettingsGeneral
 	std::string			author;
 };
 
-struct SettingsLegenarySkill
+struct SettingsLegendarySkill
 {
-	bool				bLegenaryKeepSkillLevel;
+	bool				bLegendaryKeepSkillLevel;
 	bool				bHideLegendaryButton;
-	UInt32				iSkillLevelEnableLegenary;
+	UInt32				iSkillLevelEnableLegendary;
 	UInt32				iSkillLevelAfterLengenary;
 };
 
 struct Settings
 {
+	enum {
+		kAdvanceableSkillOffset = 6,
+		kNumAdvanceableSkills = 18
+	};
+
 	Settings();
 	void ReadConfig();
 	void SaveConfig(CSimpleIniA* ini, const std::string& path);
-	//static Settings* GetSingleton();
 
 	SettingsGeneral				settingsGeneral;
-	SettingsLegenarySkill		settingsLegenarySkill;
+	SettingsLegendarySkill		settingsLegendarySkill;
 	SettingList<UInt32>			settingsSkillCaps;
 	SettingList<UInt32>			settingsSkillFormulaCaps;
 	SettingList<float>			settingsSkillExpGainMults;
@@ -90,15 +93,8 @@ struct Settings
 	SettingList<UInt32>			settingsCarryWeightAtHealthLevelUp;
 	SettingList<UInt32>			settingsCarryWeightAtMagickaLevelUp;
 	SettingList<UInt32>			settingsCarryWeightAtStaminaLevelUp;
+	SettingList<float>			settingsSkillExpGainMultsWithSkills[kNumAdvanceableSkills];
+	SettingList<float>			settingsLevelSkillExpMultsWithSkills[kNumAdvanceableSkills];
 };
 
 extern Settings settings;
-
-//key检查：正整数，且重复值取value大值。
-
-/*
-SkyrimSE.exe+608370 - 40 55                 - push rbp
-SkyrimSE.exe+608372 - 56                    - push rsi
-SkyrimSE.exe+608373 - 57                    - push rdi
-SkyrimSE.exe+608374 - 41 56                 - push r14
-*/

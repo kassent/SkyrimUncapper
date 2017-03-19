@@ -3,6 +3,10 @@
 #include "BranchTrampoline.h"
 #include "Hook_Skill.h"
 #include "Settings.h"
+#include "Utilities.h"
+
+#define GAME_EXE_NAME		"SkyrimSE.exe"
+#define GAME_EXE_VERSION	"1.4.2.0"
 
 IDebugLog gLog;
 void * g_moduleHandle = nullptr;
@@ -53,6 +57,23 @@ void SkyrimUncapper_Initialize(void)
 	_MESSAGE("imagebase = %016I64X", GetModuleHandle(NULL));
 	_MESSAGE("reloc mgr imagebase = %016I64X", RelocationManager::s_baseAddr);
 
+	std::string version;
+
+	if (GetFileVersion(GAME_EXE_NAME, version))
+	{
+		char warningInfo[100];
+		sprintf_s(warningInfo, "SkyrimSE.exe's current version is unsupported, required version is %s", GAME_EXE_VERSION);
+		if (strcmp(version.c_str(), GAME_EXE_VERSION) != NULL)
+		{
+			MessageBox(NULL, warningInfo, "SkyrimUncapper", MB_OK);
+			return;
+		}
+	}
+	else
+	{
+		MessageBox(NULL, "Can't access SkyrimSE.exe's version info, SkyrimUncapper won't be initialized", "SkyrimUncapper", MB_OK);
+		return;
+	}
 
 	if (!g_branchTrampoline.Create(1024 * 64))
 	{
@@ -65,6 +86,9 @@ void SkyrimUncapper_Initialize(void)
 		_ERROR("couldn't create codegen buffer. this is fatal. skipping remainder of init process.");
 		return;
 	}
+
+	settings.ReadConfig();
+
 	Hook_Skill_Commit();
 
 	_MESSAGE("Init complete");

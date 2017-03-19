@@ -1,6 +1,23 @@
 #include "Settings.h"
 #include "Utilities.h"
 
+#define ReadFloatLevelListSection(destination , section) 																	\
+			if (ini.GetAllKeys(##section##, keys))																			\
+			{																												\
+			for (auto& element : keys){																						\
+				##destination##.insert({ atoi(element.pItem), atof(ini.GetValue(##section##, element.pItem,	"1.00")) });}	\
+			}																												\
+			##destination##.insert({ 1, 1.00f })																			\
+
+#define SaveFloatLevelListSection(source, section)																			\
+			for (const auto& pair : ##source##){																			\
+				char key[0x8];																								\
+				char value[0x10];																							\
+				sprintf_s(key, "%d", pair.first);																			\
+				sprintf_s(value, "%.2f", pair.second);																		\
+				ini->SetValue(##section##, key, value, NULL);																\
+			}																												\
+
 Settings settings;
 
 Settings::Settings()
@@ -28,7 +45,7 @@ void Settings::ReadConfig()
 
 	settingsGeneral.version = ini.GetLongValue("General", "Version", 0);
 	settingsGeneral.author = ini.GetValue("General", "Author", "Kassent");
-	_MESSAGE("INI VERSION: %d", settingsGeneral.version);
+	_MESSAGE("INI version: %d", settingsGeneral.version);
 
 	settingsSkillCaps.insert({ 0,	ini.GetLongValue("SkillCaps", "iOneHanded",	    100) });
 	settingsSkillCaps.insert({ 1,	ini.GetLongValue("SkillCaps", "iTwoHanded",		100) });
@@ -87,6 +104,71 @@ void Settings::ReadConfig()
 	settingsSkillExpGainMults.insert({ 16,	atof(ini.GetValue("SkillExpGainMults", "fRestoration",	"1.00")) });
 	settingsSkillExpGainMults.insert({ 17,	atof(ini.GetValue("SkillExpGainMults", "fEnchanting",	"1.00")) });
 
+	CSimpleIniA::TNamesDepend keys;
+
+	for (size_t index = 0; index < kNumAdvanceableSkills; ++index)
+	{
+		switch (index)
+		{
+		case 0:
+			ReadFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\OneHanded");
+			break;
+		case 1:
+			ReadFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\TwoHanded");
+			break;
+		case 2:
+			ReadFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\Marksman");
+			break;
+		case 3:
+			ReadFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\Block");
+			break;
+		case 4:
+			ReadFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\Smithing");
+			break;
+		case 5:
+			ReadFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\HeavyArmor");
+			break;
+		case 6:
+			ReadFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\LightArmor");
+			break;
+		case 7:
+			ReadFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\Pickpocket");
+			break;
+		case 8:
+			ReadFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\LockPicking");
+			break;
+		case 9:
+			ReadFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\Sneak");
+			break;
+		case 10:
+			ReadFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\Alchemy");
+			break;
+		case 11:
+			ReadFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\SpeechCraft");
+			break;
+		case 12:
+			ReadFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\Alteration");
+			break;
+		case 13:
+			ReadFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\Conjuration");
+			break;
+		case 14:
+			ReadFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\Destruction");
+			break;
+		case 15:
+			ReadFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\Illusion");
+			break;
+		case 16:
+			ReadFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\Restoration");
+			break;
+		case 17:
+			ReadFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\Enchanting");
+			break;
+		default:
+			_MESSAGE("Unknown skill index");
+		}
+	}
+
 	settingsLevelSkillExpMults.insert({ 0,	atof(ini.GetValue("LevelSkillExpMults", "fOneHanded",   "1.00")) });
 	settingsLevelSkillExpMults.insert({ 1,	atof(ini.GetValue("LevelSkillExpMults", "fTwoHanded",	"1.00")) });
 	settingsLevelSkillExpMults.insert({ 2,	atof(ini.GetValue("LevelSkillExpMults", "fMarksman",	"1.00")) });
@@ -106,7 +188,68 @@ void Settings::ReadConfig()
 	settingsLevelSkillExpMults.insert({ 16,	atof(ini.GetValue("LevelSkillExpMults", "fRestoration",	"1.00")) });
 	settingsLevelSkillExpMults.insert({ 17,	atof(ini.GetValue("LevelSkillExpMults", "fEnchanting",	"1.00")) });
 
-	CSimpleIniA::TNamesDepend keys;
+	for (size_t index = 0; index < kNumAdvanceableSkills; ++index)
+	{
+		switch (index)
+		{
+		case 0:
+			ReadFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\OneHanded");
+			break;
+		case 1:
+			ReadFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\TwoHanded");
+			break;
+		case 2:
+			ReadFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\Marksman");
+			break;
+		case 3:
+			ReadFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\Block");
+			break;
+		case 4:
+			ReadFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\Smithing");
+			break;
+		case 5:
+			ReadFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\HeavyArmor");
+			break;
+		case 6:
+			ReadFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\LightArmor");
+			break;
+		case 7:
+			ReadFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\Pickpocket");
+			break;
+		case 8:
+			ReadFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\LockPicking");
+			break;
+		case 9:
+			ReadFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\Sneak");
+			break;
+		case 10:
+			ReadFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\Alchemy");
+			break;
+		case 11:
+			ReadFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\SpeechCraft");
+			break;
+		case 12:
+			ReadFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\Alteration");
+			break;
+		case 13:
+			ReadFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\Conjuration");
+			break;
+		case 14:
+			ReadFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\Destruction");
+			break;
+		case 15:
+			ReadFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\Illusion");
+			break;
+		case 16:
+			ReadFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\Restoration");
+			break;
+		case 17:
+			ReadFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\Enchanting");
+			break;
+		default:
+			_MESSAGE("Unknown skill index");
+		}
+	}
 
 	if (ini.GetAllKeys("PerksAtLevelUp", keys))
 	{
@@ -157,14 +300,14 @@ void Settings::ReadConfig()
 	}
 	settingsCarryWeightAtMagickaLevelUp.insert({ 1, 0 });
 
-	settings.settingsLegenarySkill.bLegenaryKeepSkillLevel = ini.GetBoolValue("LegenarySkill", "bLengenaryKeepSkillLevel", false);
-	settings.settingsLegenarySkill.bHideLegendaryButton = ini.GetBoolValue("LegenarySkill", "bHideLegendaryButton", true);
-	settings.settingsLegenarySkill.iSkillLevelEnableLegenary = ini.GetLongValue("LegenarySkill", "iSkillLevelEnableLegenary", 100);
-	settings.settingsLegenarySkill.iSkillLevelAfterLengenary = ini.GetLongValue("LegenarySkill", "iSkillLevelAfterLengenary", 0);
+	settings.settingsLegendarySkill.bLegendaryKeepSkillLevel = ini.GetBoolValue("LegendarySkill", "bLengenaryKeepSkillLevel", false);
+	settings.settingsLegendarySkill.bHideLegendaryButton = ini.GetBoolValue("LegendarySkill", "bHideLegendaryButton", true);
+	settings.settingsLegendarySkill.iSkillLevelEnableLegendary = ini.GetLongValue("LegendarySkill", "iSkillLevelEnableLegendary", 100);
+	settings.settingsLegendarySkill.iSkillLevelAfterLengenary = ini.GetLongValue("LegendarySkill", "iSkillLevelAfterLengenary", 0);
 
 	if (settingsGeneral.version != CONFIG_VERSION)
 	{
-		_MESSAGE("ini file is outdated, try to update ini file...");
+		_MESSAGE("INI file is outdated, try to update INI file...");
 		SaveConfig(&ini, path);
 	}
 
@@ -256,6 +399,70 @@ void Settings::SaveConfig(CSimpleIniA* ini,const std::string& path)
 	sprintf_s(buffer, "%.2f", settings.settingsSkillExpGainMults[17]);
 	ini->SetValue("SkillExpGainMults", "fEnchanting", buffer, NULL);
 
+	ini->SetValue("SkillExpGainMults\\OneHanded", NULL, NULL, "#All the subsections of SkillExpGainMults below allow to set an additional multiplier depending on the base skill level, independantly for each skill. ");
+	for (size_t index = 0; index < kNumAdvanceableSkills; ++index)
+	{
+		switch (index)
+		{
+		case 0:
+			SaveFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\OneHanded");
+			break;
+		case 1:
+			SaveFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\TwoHanded");
+			break;
+		case 2:
+			SaveFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\Marksman");
+			break;
+		case 3:
+			SaveFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\Block");
+			break;
+		case 4:
+			SaveFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\Smithing");
+			break;
+		case 5:
+			SaveFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\HeavyArmor");
+			break;
+		case 6:
+			SaveFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\LightArmor");
+			break;
+		case 7:
+			SaveFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\Pickpocket");
+			break;
+		case 8:
+			SaveFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\LockPicking");
+			break;
+		case 9:
+			SaveFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\Sneak");
+			break;
+		case 10:
+			SaveFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\Alchemy");
+			break;
+		case 11:
+			SaveFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\SpeechCraft");
+			break;
+		case 12:
+			SaveFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\Alteration");
+			break;
+		case 13:
+			SaveFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\Conjuration");
+			break;
+		case 14:
+			SaveFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\Destruction");
+			break;
+		case 15:
+			SaveFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\Illusion");
+			break;
+		case 16:
+			SaveFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\Restoration");
+			break;
+		case 17:
+			SaveFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\Enchanting");
+			break;
+		default:
+			_MESSAGE("Unknown skill index");
+		}
+	}
+
 	sprintf_s(buffer, "%.2f", settings.settingsLevelSkillExpMults[0]);
 	ini->SetValue("LevelSkillExpMults", "fOneHanded", buffer, "#Set the Skill Experience to Player's Character Experience Multipliers.");
 	sprintf_s(buffer, "%.2f", settings.settingsLevelSkillExpMults[1]);
@@ -292,6 +499,70 @@ void Settings::SaveConfig(CSimpleIniA* ini,const std::string& path)
 	ini->SetValue("LevelSkillExpMults", "fRestoration", buffer, NULL);
 	sprintf_s(buffer, "%.2f", settings.settingsLevelSkillExpMults[17]);
 	ini->SetValue("LevelSkillExpMults", "fEnchanting", buffer, NULL);
+
+	ini->SetValue("LevelSkillExpMults\\OneHanded", NULL, NULL, "#All the subsections of PCLevelSkillExpMults below allow to set an additional multipliers depending on the base skill level, independantly for each skill.");
+	for (size_t index = 0; index < kNumAdvanceableSkills; ++index)
+	{
+		switch (index)
+		{
+		case 0:
+			SaveFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\OneHanded");
+			break;
+		case 1:
+			SaveFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\TwoHanded");
+			break;
+		case 2:
+			SaveFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\Marksman");
+			break;
+		case 3:
+			SaveFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\Block");
+			break;
+		case 4:
+			SaveFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\Smithing");
+			break;
+		case 5:
+			SaveFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\HeavyArmor");
+			break;
+		case 6:
+			SaveFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\LightArmor");
+			break;
+		case 7:
+			SaveFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\Pickpocket");
+			break;
+		case 8:
+			SaveFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\LockPicking");
+			break;
+		case 9:
+			SaveFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\Sneak");
+			break;
+		case 10:
+			SaveFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\Alchemy");
+			break;
+		case 11:
+			SaveFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\SpeechCraft");
+			break;
+		case 12:
+			SaveFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\Alteration");
+			break;
+		case 13:
+			SaveFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\Conjuration");
+			break;
+		case 14:
+			SaveFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\Destruction");
+			break;
+		case 15:
+			SaveFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\Illusion");
+			break;
+		case 16:
+			SaveFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\Restoration");
+			break;
+		case 17:
+			SaveFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\Enchanting");
+			break;
+		default:
+			_MESSAGE("Unknown skill index");
+		}
+	}
 
 	for (const auto& pair : settings.settingsPerksAtLevelUp)
 	{
@@ -365,10 +636,10 @@ void Settings::SaveConfig(CSimpleIniA* ini,const std::string& path)
 			ini->SetLongValue("CarryWeightAtStaminaLevelUp", key, pair.second, NULL);
 	}
 
-	ini->SetBoolValue("LegenarySkill", "bLengenaryKeepSkillLevel", settings.settingsLegenarySkill.bLegenaryKeepSkillLevel, "#This option determines whether the legendary feature will reset the skill level.Set this option to true will make option \"iSkillLevelAfterLengenary\" have no effect.");
-	ini->SetBoolValue("LegenarySkill", "bHideLegendaryButton", settings.settingsLegenarySkill.bHideLegendaryButton, "#This option determines whether to display the legenary button in state menu when you meet the requirements of legendary skills.");
-	ini->SetLongValue("LegenarySkill", "iSkillLevelEnableLegenary", settings.settingsLegenarySkill.iSkillLevelEnableLegenary, "#This option determines the skill level required to make a skill legenary.");
-	ini->SetLongValue("LegenarySkill", "iSkillLevelAfterLengenary", settings.settingsLegenarySkill.iSkillLevelAfterLengenary, "#This option determines the level of a skill after making this skill legenary.Set this option to 0 will reset the skill level to default level.");
+	ini->SetBoolValue("LegendarySkill", "bLengenaryKeepSkillLevel", settings.settingsLegendarySkill.bLegendaryKeepSkillLevel, "#This option determines whether the legendary feature will reset the skill level.Set this option to true will make option \"iSkillLevelAfterLengenary\" have no effect.");
+	ini->SetBoolValue("LegendarySkill", "bHideLegendaryButton", settings.settingsLegendarySkill.bHideLegendaryButton, "#This option determines whether to display the Legendary button in state menu when you meet the requirements of legendary skills.");
+	ini->SetLongValue("LegendarySkill", "iSkillLevelEnableLegendary", settings.settingsLegendarySkill.iSkillLevelEnableLegendary, "#This option determines the skill level required to make a skill Legendary.");
+	ini->SetLongValue("LegendarySkill", "iSkillLevelAfterLengenary", settings.settingsLegendarySkill.iSkillLevelAfterLengenary, "#This option determines the level of a skill after making this skill Legendary.Set this option to 0 will reset the skill level to default level.");
 
 #ifdef INVALID_CODE
 	std::string path = ".\\Data\\SKSE\\Plugin\\SkyrimUncapper.ini";
@@ -379,5 +650,5 @@ void Settings::SaveConfig(CSimpleIniA* ini,const std::string& path)
 
 	ini->SaveFile(path.c_str());
 
-	_MESSAGE("finish updating ini file...");
+	_MESSAGE("Finish updating ini file...");
 }

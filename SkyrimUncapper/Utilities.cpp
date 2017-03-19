@@ -4,6 +4,7 @@
 #include <memory>
 
 #pragma comment(lib, "shlwapi.lib")
+#pragma comment(lib, "version.lib")
 
 std::string GetRuntimePath()
 {
@@ -65,6 +66,72 @@ std::string GetCurrentDLLDirectory()
 	}
 	return "";
 }
+
+bool QueryValue(const std::string& ValueName, const std::string& szModuleName, std::string& RetStr)
+
+{
+	bool bSuccess = FALSE;
+	BYTE*  m_lpVersionData = NULL;
+	DWORD   m_dwLangCharset = 0;
+	CHAR *tmpstr = NULL;
+	do
+	{
+		if (!ValueName.size() || !szModuleName.size())
+			break;
+		DWORD dwHandle;
+		// 判断系统能否检索到指定文件的版本信息  
+		//针对包含了版本资源的一个文件，判断容纳 文件版本信息需要一个多大的缓冲区
+		//返回值说明Long，容纳文件的版本资源所需的缓冲区长度。如文件不包含版本信息，则返回一个0值。会设置GetLastError参数表
+		DWORD dwDataSize = ::GetFileVersionInfoSizeA((LPCSTR)szModuleName.c_str(), &dwHandle);
+		if (dwDataSize == 0)
+			break;
+		//std::nothrow:在内存不足时，new (std::nothrow)并不抛出异常，而是将指针置NULL。
+		m_lpVersionData = new (std::nothrow) BYTE[dwDataSize];// 分配缓冲区  
+		if (NULL == m_lpVersionData)
+			break;
+		// 检索信息  
+		//从支持版本标记的一个模块里获取文件版本信息
+		if (!::GetFileVersionInfoA((LPCSTR)szModuleName.c_str(), dwHandle, dwDataSize, (void*)m_lpVersionData))
+			break;
+		UINT nQuerySize;
+		DWORD* pTransTable;
+		// 设置语言  
+		//https://msdn.microsoft.com/zh-cn/vstudio/aa909243
+		if (!::VerQueryValueA(m_lpVersionData, "\\VarFileInfo\\Translation", (void **)&pTransTable, &nQuerySize))
+			break;
+		//MAKELONG 将两个16位的数联合成一个无符号的32位数
+		m_dwLangCharset = MAKELONG(HIWORD(pTransTable[0]), LOWORD(pTransTable[0]));
+		if (m_lpVersionData == NULL)
+			break;
+		tmpstr = new (std::nothrow) CHAR[128];// 分配缓冲区  
+		if (NULL == tmpstr)
+			break;
+		sprintf_s(tmpstr, 128, "\\StringFileInfo\\%08lx\\%s", m_dwLangCharset, ValueName.c_str());
+		LPVOID lpData;
+		// 调用此函数查询前需要先依次调用函数GetFileVersionInfoSize和GetFileVersionInfo  
+		if (::VerQueryValueA((void *)m_lpVersionData, tmpstr, &lpData, &nQuerySize))
+			RetStr = (char*)lpData;
+		bSuccess = TRUE;
+	} while (FALSE);
+	// 销毁缓冲区  
+	if (m_lpVersionData)
+	{
+		delete[] m_lpVersionData;
+		m_lpVersionData = NULL;
+	}
+	if (tmpstr)
+	{
+		delete[] tmpstr;
+		tmpstr = NULL;
+	}
+	return bSuccess;
+}
+
+bool  GetFileVersion(const std::string& szModuleName, std::string& RetStr)
+{
+	return QueryValue("FileVersion", szModuleName, RetStr);
+};
+
 
 const std::string & GetConfigPath()
 {
