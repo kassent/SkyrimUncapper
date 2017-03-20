@@ -61,10 +61,10 @@ void SkyrimUncapper_Initialize(void)
 
 	if (GetFileVersion(GAME_EXE_NAME, version))
 	{
-		char warningInfo[100];
-		sprintf_s(warningInfo, "SkyrimSE.exe's current version is unsupported, required version is %s", GAME_EXE_VERSION);
 		if (strcmp(version.c_str(), GAME_EXE_VERSION) != NULL)
 		{
+			char warningInfo[100];
+			sprintf_s(warningInfo, "SkyrimSE.exe's current version is unsupported, required version is %s", GAME_EXE_VERSION);
 			MessageBox(NULL, warningInfo, "SkyrimUncapper", MB_OK);
 			return;
 		}
@@ -150,6 +150,8 @@ extern "C" {
 
 	void LoadINIConfig()
 	{
+#ifdef _DEBUG
 		settings.ReadConfig();
+#endif
 	}
 };

@@ -66,7 +66,7 @@ struct SettingsLegendarySkill
 	bool				bLegendaryKeepSkillLevel;
 	bool				bHideLegendaryButton;
 	UInt32				iSkillLevelEnableLegendary;
-	UInt32				iSkillLevelAfterLengenary;
+	UInt32				iSkillLevelAfterLegendary;
 };
 
 struct Settings

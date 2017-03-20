@@ -31,6 +31,7 @@ void Settings::ReadConfig()
 	CSimpleIniA ini;
 	ini.LoadFile(path.c_str());
 
+#ifdef _DEBUG
 	settingsSkillCaps.clear();
 	settingsSkillFormulaCaps.clear();
 	settingsSkillExpGainMults.clear();
@@ -42,6 +43,11 @@ void Settings::ReadConfig()
 	settingsCarryWeightAtHealthLevelUp.clear();
 	settingsCarryWeightAtStaminaLevelUp.clear();
 	settingsCarryWeightAtMagickaLevelUp.clear();
+	for (auto& element : settingsSkillExpGainMultsWithSkills)
+		element.clear();
+	for (auto& element : settingsLevelSkillExpMultsWithSkills)
+		element.clear();
+#endif
 
 	settingsGeneral.version = ini.GetLongValue("General", "Version", 0);
 	settingsGeneral.author = ini.GetValue("General", "Author", "Kassent");
@@ -165,7 +171,7 @@ void Settings::ReadConfig()
 			ReadFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\Enchanting");
 			break;
 		default:
-			_MESSAGE("Unknown skill index");
+			_MESSAGE("Unknown skill index.");
 		}
 	}
 
@@ -247,7 +253,7 @@ void Settings::ReadConfig()
 			ReadFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\Enchanting");
 			break;
 		default:
-			_MESSAGE("Unknown skill index");
+			_MESSAGE("Unknown skill index.");
 		}
 	}
 
@@ -300,10 +306,10 @@ void Settings::ReadConfig()
 	}
 	settingsCarryWeightAtMagickaLevelUp.insert({ 1, 0 });
 
-	settings.settingsLegendarySkill.bLegendaryKeepSkillLevel = ini.GetBoolValue("LegendarySkill", "bLengenaryKeepSkillLevel", false);
+	settings.settingsLegendarySkill.bLegendaryKeepSkillLevel = ini.GetBoolValue("LegendarySkill", "bLegendaryKeepSkillLevel", false);
 	settings.settingsLegendarySkill.bHideLegendaryButton = ini.GetBoolValue("LegendarySkill", "bHideLegendaryButton", true);
 	settings.settingsLegendarySkill.iSkillLevelEnableLegendary = ini.GetLongValue("LegendarySkill", "iSkillLevelEnableLegendary", 100);
-	settings.settingsLegendarySkill.iSkillLevelAfterLengenary = ini.GetLongValue("LegendarySkill", "iSkillLevelAfterLengenary", 0);
+	settings.settingsLegendarySkill.iSkillLevelAfterLegendary = ini.GetLongValue("LegendarySkill", "iSkillLevelAfterLegendary", 0);
 
 	if (settingsGeneral.version != CONFIG_VERSION)
 	{
@@ -459,7 +465,7 @@ void Settings::SaveConfig(CSimpleIniA* ini,const std::string& path)
 			SaveFloatLevelListSection(settingsSkillExpGainMultsWithSkills[index], "SkillExpGainMults\\Enchanting");
 			break;
 		default:
-			_MESSAGE("Unknown skill index");
+			_MESSAGE("Unknown skill index.");
 		}
 	}
 
@@ -560,7 +566,7 @@ void Settings::SaveConfig(CSimpleIniA* ini,const std::string& path)
 			SaveFloatLevelListSection(settingsLevelSkillExpMultsWithSkills[index], "LevelSkillExpMults\\Enchanting");
 			break;
 		default:
-			_MESSAGE("Unknown skill index");
+			_MESSAGE("Unknown skill index.");
 		}
 	}
 
@@ -636,10 +642,10 @@ void Settings::SaveConfig(CSimpleIniA* ini,const std::string& path)
 			ini->SetLongValue("CarryWeightAtStaminaLevelUp", key, pair.second, NULL);
 	}
 
-	ini->SetBoolValue("LegendarySkill", "bLengenaryKeepSkillLevel", settings.settingsLegendarySkill.bLegendaryKeepSkillLevel, "#This option determines whether the legendary feature will reset the skill level.Set this option to true will make option \"iSkillLevelAfterLengenary\" have no effect.");
-	ini->SetBoolValue("LegendarySkill", "bHideLegendaryButton", settings.settingsLegendarySkill.bHideLegendaryButton, "#This option determines whether to display the Legendary button in state menu when you meet the requirements of legendary skills.");
+	ini->SetBoolValue("LegendarySkill", "bLegendaryKeepSkillLevel", settings.settingsLegendarySkill.bLegendaryKeepSkillLevel, "#This option determines whether the legendary feature will reset the skill level.Set this option to true will make option \"iSkillLevelAfterLegendary\" have no effect.");
+	ini->SetBoolValue("LegendarySkill", "bHideLegendaryButton", settings.settingsLegendarySkill.bHideLegendaryButton, "#This option determines whether to hide the legendary button in StatsMenu when you meet the requirements of legendary skills.If you set \"iSkillLevelEnableLegendary\" to below 100, the lengedary button will not show up, but you can make skills lengedary normally by pressing SPACE.");
 	ini->SetLongValue("LegendarySkill", "iSkillLevelEnableLegendary", settings.settingsLegendarySkill.iSkillLevelEnableLegendary, "#This option determines the skill level required to make a skill Legendary.");
-	ini->SetLongValue("LegendarySkill", "iSkillLevelAfterLengenary", settings.settingsLegendarySkill.iSkillLevelAfterLengenary, "#This option determines the level of a skill after making this skill Legendary.Set this option to 0 will reset the skill level to default level.");
+	ini->SetLongValue("LegendarySkill", "iSkillLevelAfterLegendary", settings.settingsLegendarySkill.iSkillLevelAfterLegendary, "#This option determines the level of a skill after making this skill Legendary.Set this option to 0 will reset the skill level to default level.");
 
 #ifdef INVALID_CODE
 	std::string path = ".\\Data\\SKSE\\Plugin\\SkyrimUncapper.ini";

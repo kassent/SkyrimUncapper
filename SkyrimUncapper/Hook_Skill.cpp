@@ -131,7 +131,7 @@ void ImprovePlayerSkillPoints_Hook(PlayerSkills* skillData, UInt32 skillID, floa
 	_MESSAGE("function: %s", __FUNCTION__);
 	void* actorValue = static_cast<char*>(*g_pCharacter) + 0xB0;
 	for (size_t i = 0; i <= 8; ++i)
-		_MESSAGE("Index: %d, Function: %016X", i, *(*static_cast<uintptr_t**>(actorValue)+i));
+		_MESSAGE("Index: %d, Function: %016I64X", i, *(*static_cast<uintptr_t**>(actorValue)+i));
 #endif
 
 	ImprovePlayerSkillPoints_Original(skillData, skillID, exp, unk1, unk2, unk3, unk4);
@@ -266,7 +266,7 @@ void ResetLegendarySkillLevel_Hook(float baseLevel, UInt32 skillID)  //…Ë÷√¥´∆Ê∫
 			*resetLevel = GetBaseActorValue(*(char**)(g_pCharacter.GetPtr()) + 0xB0, skillID);
 		else
 		{
-			UInt32 LegendaryLevel = settings.settingsLegendarySkill.iSkillLevelAfterLengenary;
+			UInt32 LegendaryLevel = settings.settingsLegendarySkill.iSkillLevelAfterLegendary;
 			*resetLevel = (!LegendaryLevel) ? originalSetting : LegendaryLevel;
 		}
 	}
