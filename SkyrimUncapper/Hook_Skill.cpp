@@ -288,7 +288,7 @@ void ResetLegendarySkillLevel_Hook(float baseLevel, UInt32 skillID)  //ÉèÖÃ´«Ææº
 		else
 		{
 			UInt32 legendaryLevel = settings.settingsLegendarySkill.iSkillLevelAfterLegendary;
-			if (legendaryLevel && legendaryLevel > baseLevel)
+			if ((legendaryLevel && legendaryLevel > baseLevel) || (!legendaryLevel && originalSetting > baseLevel))
 				*resetLevel = baseLevel;
 			else
 				*resetLevel = (!legendaryLevel) ? originalSetting : legendaryLevel;
