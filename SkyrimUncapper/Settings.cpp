@@ -328,7 +328,7 @@ void Settings::SaveConfig(CSimpleIniA* ini,const std::string& path)
 	ini->SetLongValue("General", "Version", CONFIG_VERSION, "#Configuration file version, DO NOT CHANGE");
 	ini->SetValue("General", "Author", "Kassent", NULL);
 
-	ini->SetLongValue("SkillCaps", "iOneHanded", settings.settingsSkillCaps[0], "#Set the Skill Level Cap.");
+	ini->SetLongValue("SkillCaps", "iOneHanded", settings.settingsSkillCaps[0], "#Set the skill level cap.This option determines the upper limit of skill level you can reach.");
 	ini->SetLongValue("SkillCaps", "iTwoHanded", settings.settingsSkillCaps[1], NULL);
 	ini->SetLongValue("SkillCaps", "iMarksman", settings.settingsSkillCaps[2], NULL);
 	ini->SetLongValue("SkillCaps", "iBlock", settings.settingsSkillCaps[3], NULL);
@@ -347,7 +347,7 @@ void Settings::SaveConfig(CSimpleIniA* ini,const std::string& path)
 	ini->SetLongValue("SkillCaps", "iRestoration", settings.settingsSkillCaps[16], NULL);
 	ini->SetLongValue("SkillCaps", "iEnchanting", settings.settingsSkillCaps[17], NULL);
 
-	ini->SetLongValue("SkillFormulaCaps", "iOneHanded", settings.settingsSkillFormulaCaps[0], "#Set the Skill Formula Cap.");
+	ini->SetLongValue("SkillFormulaCaps", "iOneHanded", settings.settingsSkillFormulaCaps[0], "#Set the skill formula cap. This option determines the upper limit of skill level uesd in the calculation of all kinds of magic effects.");
 	ini->SetLongValue("SkillFormulaCaps", "iTwoHanded", settings.settingsSkillFormulaCaps[1], NULL);
 	ini->SetLongValue("SkillFormulaCaps", "iMarksman", settings.settingsSkillFormulaCaps[2], NULL);
 	ini->SetLongValue("SkillFormulaCaps", "iBlock", settings.settingsSkillFormulaCaps[3], NULL);
@@ -369,7 +369,7 @@ void Settings::SaveConfig(CSimpleIniA* ini,const std::string& path)
 	char buffer[0x10];
 
 	sprintf_s(buffer, "%.2f", settings.settingsSkillExpGainMults[0]);
-	ini->SetValue("SkillExpGainMults", "fOneHanded", buffer, "#Set the Skill Experience Gained Multiplier.");
+	ini->SetValue("SkillExpGainMults", "fOneHanded", buffer, "#Set the skill experience gained multiplier.The skill experience you gained actually = The final calculated experience value right before it is given to the character after any experience modification * SkillExpGainMult * Corresponding Sub-SkillExpGainMult listed below.");
 	sprintf_s(buffer, "%.2f", settings.settingsSkillExpGainMults[1]);
 	ini->SetValue("SkillExpGainMults", "fTwoHanded", buffer, NULL);
 	sprintf_s(buffer, "%.2f", settings.settingsSkillExpGainMults[2]);
@@ -470,7 +470,7 @@ void Settings::SaveConfig(CSimpleIniA* ini,const std::string& path)
 	}
 
 	sprintf_s(buffer, "%.2f", settings.settingsLevelSkillExpMults[0]);
-	ini->SetValue("LevelSkillExpMults", "fOneHanded", buffer, "#Set the Skill Experience to Player's Character Experience Multipliers.");
+	ini->SetValue("LevelSkillExpMults", "fOneHanded", buffer, "#Set the skill experience to PC experience multipliers.When you level up a skill, the PC experience you gained actually = Current base skill level * LevelSkillExpMults * Corresponding Sub-LevelSkillExpMults listed below.");
 	sprintf_s(buffer, "%.2f", settings.settingsLevelSkillExpMults[1]);
 	ini->SetValue("LevelSkillExpMults", "fTwoHanded", buffer, NULL);
 	sprintf_s(buffer, "%.2f", settings.settingsLevelSkillExpMults[2]);
@@ -506,7 +506,7 @@ void Settings::SaveConfig(CSimpleIniA* ini,const std::string& path)
 	sprintf_s(buffer, "%.2f", settings.settingsLevelSkillExpMults[17]);
 	ini->SetValue("LevelSkillExpMults", "fEnchanting", buffer, NULL);
 
-	ini->SetValue("LevelSkillExpMults\\OneHanded", NULL, NULL, "#All the subsections of PCLevelSkillExpMults below allow to set an additional multipliers depending on the base skill level, independantly for each skill.");
+	ini->SetValue("LevelSkillExpMults\\OneHanded", NULL, NULL, "#All the subsections of LevelSkillExpMults below allow to set an additional multipliers depending on the base skill level, independantly for each skill.");
 	for (size_t index = 0; index < kNumAdvanceableSkills; ++index)
 	{
 		switch (index)
