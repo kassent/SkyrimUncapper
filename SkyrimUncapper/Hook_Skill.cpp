@@ -55,6 +55,8 @@ _GetCurrentActorValue GetCurrentActorValue_Original = nullptr;
 typedef float(*_GetBaseActorValue)(void*, UInt32);
 RelocAddr <_GetBaseActorValue> GetBaseActorValue = 0x0608540;	//GetBaseActorValue
 
+typedef float(*_CalculateChargePointsPerUse)(float basePoints, float enchantingLevel);
+RelocAddr <_CalculateChargePointsPerUse> CalculateChargePointsPerUse_Original = 0x03BDB60;
 
 float CalculateSkillExpForLevel(UInt32 skillID, float skillLevel)
 {
@@ -65,14 +67,33 @@ float CalculateSkillExpForLevel(UInt32 skillID, float skillLevel)
 	RelocPtr <float> pow = 0x01D88258;
 	typedef float(*Fn)(float, float);
 	RelocAddr <Fn> fn = 0x01312C52;
-	if (skillLevel < 100.0f)
+	//if (skillLevel < 100.0f)
+	if(skillLevel < settings.settingsSkillCaps[skillID - 6])
 	{
-		result = fn(skillLevel, *pow.GetPtr());
+		result = fn(skillLevel, *pow);
 		float a = 1.0f, b = 0.0f, c = 1.0f, d = 0.0f;
 		if (GetSkillCoefficients(skillID, &a, &b, &c, &d))
 			result = result * c + d;
 	}
 	return result;
+}
+
+float CalculateChargePointsPerUse_Hook(float basePoints, float enchantingLevel)
+{
+	RelocPtr<float> index = 0x01D8A058;			 //1.10
+	RelocPtr<float> divider = 0x01D8A010;		 //1/200 = 0.005
+	RelocPtr<float> radical = 0x01D8A040;		 //0.5 sqrt
+	RelocPtr<float> unk0 = 0x014E8F78;			 //1.00
+	RelocPtr<float> unk1 = 0x01D8A028;			 //3.00
+	typedef float(*Fn)(float, float);
+	RelocAddr <Fn> fn = 0x01312C52;
+	enchantingLevel = (enchantingLevel > 199.0f) ? 199.0f : enchantingLevel;
+	float result = *unk1 * fn(basePoints, *index) * (*unk0 - fn((enchantingLevel * (*divider)), *radical));
+#ifdef _DEBUG
+	_MESSAGE("function:%s, basePoints:%.2f, enchantingLevel:%.2f, result:%.2f", __FUNCTION__, basePoints, enchantingLevel, result);
+#endif
+	return result;
+	//Charges Per Use = 3 * (base enchantment cost * magnitude / maximum magnitude)^1.1 * (1 - sqrt(skill/200))
 }
 
 void ImproveSkillByTraining_Hook(void* pPlayer, UInt32 skillID, UInt32 count)
@@ -263,11 +284,14 @@ void ResetLegendarySkillLevel_Hook(float baseLevel, UInt32 skillID)  //ÉèÖÃ´«Ææº
 	if ((skillID >= 6) && (skillID <= 23))
 	{
 		if (settings.settingsLegendarySkill.bLegendaryKeepSkillLevel)
-			*resetLevel = GetBaseActorValue(*(char**)(g_pCharacter.GetPtr()) + 0xB0, skillID);
+			*resetLevel = baseLevel;
 		else
 		{
-			UInt32 LegendaryLevel = settings.settingsLegendarySkill.iSkillLevelAfterLegendary;
-			*resetLevel = (!LegendaryLevel) ? originalSetting : LegendaryLevel;
+			UInt32 legendaryLevel = settings.settingsLegendarySkill.iSkillLevelAfterLegendary;
+			if (legendaryLevel && legendaryLevel > baseLevel)
+				*resetLevel = baseLevel;
+			else
+				*resetLevel = (!legendaryLevel) ? originalSetting : legendaryLevel;
 		}
 	}
 	else
@@ -301,6 +325,8 @@ void Hook_Skill_Init()
 void Hook_Skill_Commit()
 {
 	g_branchTrampoline.Write6Branch(ImproveSkillByTraining_Original.GetUIntPtr(), (uintptr_t)ImproveSkillByTraining_Hook);
+
+	g_branchTrampoline.Write6Branch(CalculateChargePointsPerUse_Original.GetUIntPtr(), (uintptr_t)CalculateChargePointsPerUse_Hook);
 
 	{
 		struct ImproveLevelExpBySkillLevel_Code : Xbyak::CodeGenerator

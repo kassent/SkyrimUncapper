@@ -3,7 +3,9 @@
 class ActorValueOwner
 {
 public:
+	//00007FF71DFA71B0 + 28 = 00007FF71DFA71D8
 	virtual ~ActorValueOwner(){}
+	//C0 86 F8 1C F7 7F 00 00   7FF71CF886C0
 
 	// Argument is the ActorValue ID
 	virtual float	GetCurrent(UInt32 arg);
