@@ -141,7 +141,7 @@ void ImprovePlayerSkillPoints_Hook(PlayerSkills* skillData, UInt32 skillID, floa
 		UInt32 baseSkillLevel = static_cast<UInt32>(GetBaseActorValue((char*)(*g_pCharacter) + 0xB0, skillID));
 		float skillMult = settings.settingsSkillExpGainMultsWithSkills[skillID - 6].GetValue(baseSkillLevel);
 		UInt16 level = GetLevel(*g_pCharacter);
-		float levelMult = settings.settingsLevelSkillExpMultsWithPCLevel[skillID - 6].GetValue(level);
+		float levelMult = settings.settingsSkillExpGainMultsWithPCLevel[skillID - 6].GetValue(level);
 		exp *= settings.settingsSkillExpGainMults[skillID - 6] * skillMult * levelMult;
 	}
 
