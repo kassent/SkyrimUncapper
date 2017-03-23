@@ -5,7 +5,7 @@
 #include <string>
 #include <algorithm>
 
-#define CONFIG_VERSION 3
+#define CONFIG_VERSION 4
 
 template<typename T>
 struct SettingList : public std::map < UInt32, T>
@@ -94,7 +94,9 @@ struct Settings
 	SettingList<UInt32>			settingsCarryWeightAtMagickaLevelUp;
 	SettingList<UInt32>			settingsCarryWeightAtStaminaLevelUp;
 	SettingList<float>			settingsSkillExpGainMultsWithSkills[kNumAdvanceableSkills];
+	SettingList<float>			settingsSkillExpGainMultsWithPCLevel[kNumAdvanceableSkills];
 	SettingList<float>			settingsLevelSkillExpMultsWithSkills[kNumAdvanceableSkills];
+	SettingList<float>			settingsLevelSkillExpMultsWithPCLevel[kNumAdvanceableSkills];
 };
 
 extern Settings settings;

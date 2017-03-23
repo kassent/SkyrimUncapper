@@ -45,5 +45,6 @@ public:
 	StatData * data;
 };
 
+
 void Hook_Skill_Init();
 void Hook_Skill_Commit();

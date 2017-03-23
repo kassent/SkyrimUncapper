@@ -53,19 +53,38 @@ struct SettingList : public std::map < UInt32, T>
 	}
 
 };
+
+int sum(const int& a, const int& b)
+{
+	printf("function:%s, a = %d, c =%d", __FUNCTION__, a, b);
+	return a + b;
+}
+
+
 void main()
 {
 
-	SettingList<float>  test;
+	//SettingList<float>  test;
 
-	test.insert({ 1, 1.13 });
-	test.insert({ 4, 2.28 });
-	test.insert({ 10, 5.46 });
-	test.insert({ 20, 7.35 });
-	for (unsigned long i = 0; i < 1000; ++i)
-	{
-		printf("index: %d, n: %.2f\n", i, test.GetDecimal(i));
-	}
+	//test.insert({ 1, 1.13 });
+	//test.insert({ 4, 2.28 });
+	//test.insert({ 10, 5.46 });
+	//test.insert({ 20, 7.35 });
+	//for (unsigned long i = 0; i < 1000; ++i)
+	//{
+	//	printf("index: %d, n: %.2f\n", i, test.GetDecimal(i));
+	//}
+
+	int a = 10, b = 11;
+
+	typedef int(*_SUMREF)(int&, int&);
+	_SUMREF sum1 = (_SUMREF)sum;
+
+	typedef int(*_SUMPOT)(int*, int*);
+	_SUMPOT sum2 = (_SUMPOT)sum;
+
+	sum1(a, b);
+	sum2(&a, &b);
 
 
 	system("pause");

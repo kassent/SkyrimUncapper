@@ -6,12 +6,7 @@
 #include "xbyak.h"
 using LevelData = PlayerSkills::StatData::LevelData;
 
-RelocPtr <void*>			g_pCharacter		   = 0x02EC86A8;
-
-//RelocPtr <char>				g_skyrimVersion		= 0x0150A9F8;
-//RelocPtr <UInt8>				g_numPerkPoints		= reinterpret_cast<uintptr_t>(*g_pCharacter.GetPtr()) + 0xB01;
-//RelocPtr <PlayerSkills>		g_playerSkills	    = reinterpret_cast<uintptr_t>(*g_pCharacter.GetPtr()) + 0x9B0;
-//RelocPtr <ActorValueOwner>	g_actorValueOwner   = reinterpret_cast<uintptr_t>(*g_pCharacter.GetPtr()) + 0xB0;
+RelocPtr <void*> g_pCharacter = 0x02EC86A8;
 
 RelocAddr <uintptr_t> kHook_ModifyPerkPool_Ent = 0x008AA60F;
 RelocAddr <uintptr_t> kHook_ModifyPerkPool_Ret = 0x008AA62B;
@@ -145,7 +140,9 @@ void ImprovePlayerSkillPoints_Hook(PlayerSkills* skillData, UInt32 skillID, floa
 #endif
 		UInt32 baseSkillLevel = static_cast<UInt32>(GetBaseActorValue((char*)(*g_pCharacter) + 0xB0, skillID));
 		float skillMult = settings.settingsSkillExpGainMultsWithSkills[skillID - 6].GetValue(baseSkillLevel);
-		exp *= settings.settingsSkillExpGainMults[skillID - 6] * skillMult;
+		UInt16 level = GetLevel(*g_pCharacter);
+		float levelMult = settings.settingsLevelSkillExpMultsWithPCLevel[skillID - 6].GetValue(level);
+		exp *= settings.settingsSkillExpGainMults[skillID - 6] * skillMult * levelMult;
 	}
 
 #ifdef _DEBUG
@@ -160,14 +157,17 @@ void ImprovePlayerSkillPoints_Hook(PlayerSkills* skillData, UInt32 skillID, floa
 
 float ImproveLevelExpBySkillLevel_Hook(float skillLevel, UInt32 skillID)
 {
-	float baseMult = 1.0f, skillMult = 1.0f;
+	float baseMult = 1.0f, skillMult = 1.0f, levelMult = 1.0f;
 	if ((skillID >= 6) && (skillID <= 23))
 	{
 		baseMult = settings.settingsLevelSkillExpMults[skillID - 6];
 		UInt32 baseSkillLevel = static_cast<UInt32>(GetBaseActorValue((char*)(*g_pCharacter) + 0xB0, skillID));
 		skillMult = settings.settingsLevelSkillExpMultsWithSkills[skillID - 6].GetValue(baseSkillLevel);
+		UInt16 level = GetLevel(*g_pCharacter);
+		levelMult = settings.settingsLevelSkillExpMultsWithPCLevel[skillID - 6].GetValue(level);
+		//PCLevel has some minor glitch.I need to calculate player's actual level.
 	}
-	float result = ImproveLevelExpBySkillLevel_Original(skillLevel) * baseMult * skillMult;
+	float result = ImproveLevelExpBySkillLevel_Original(skillLevel) * baseMult * skillMult * levelMult;
 #ifdef _DEBUG
 	_MESSAGE("function:%s, skillId:%d, skillLevel:%.2f, skillMult:%.2f, result:%.2f", __FUNCTION__, skillID, skillLevel, skillMult, result);
 #endif
@@ -277,7 +277,7 @@ float GetCurrentActorValue_Hook(void* avo, UInt32 skillID)   //PC&NPC
 	return skillLevel;
 }
 
-void ResetLegendarySkillLevel_Hook(float baseLevel, UInt32 skillID)  //设置传奇后技能等级.
+void LegendaryResetSkillLevel_Hook(float baseLevel, UInt32 skillID) 
 {
 	static RelocPtr<float> resetLevel = 0x1D8E168;
 	static float originalSetting = *resetLevel;
@@ -314,7 +314,6 @@ bool HideLegendaryButton_Hook(UInt32 skillID)
 		return true;
 	return false;
 }
-
 
 
 void Hook_Skill_Init()
@@ -504,7 +503,7 @@ void Hook_Skill_Commit()
 				Xbyak::Label retnLabel;
 
 				mov(edx, ptr[rsi + 0x1C]);
-				call((void*)&ResetLegendarySkillLevel_Hook);
+				call((void*)&LegendaryResetSkillLevel_Hook);
 
 				jmp(ptr[rip + retnLabel]);
 
@@ -580,3 +579,15 @@ void Hook_Skill_Commit()
 	}
 #endif
 }
+
+
+
+//RelocPtr <char> g_skyrimVersion = 0x0150A9F8;
+//RelocPtr <UInt8> g_numPerkPoints = reinterpret_cast<uintptr_t>(*g_pCharacter.GetPtr()) + 0xB01;
+//RelocPtr <PlayerSkills> g_playerSkills = reinterpret_cast<uintptr_t>(*g_pCharacter.GetPtr()) + 0x9B0;
+//RelocPtr <ActorValueOwner> g_actorValueOwner = reinterpret_cast<uintptr_t>(*g_pCharacter.GetPtr()) + 0xB0;
+
+//SkyrimSE.exe + 8AE3E9 - 8B 56 1C - mov edx, [rsi + 1C]
+//SkyrimSE.exe + 8AE3EC - 48 8B 88 B0090000 - mov rcx, [rax + 000009B0]
+//SkyrimSE.exe + 8AE3F3 - E8 08F3E1FF - call SkyrimSE.exe + 6CD700
+//void GiveBackPerkPoints(PlayerSkills* skillData, UInt32 skillID); 增加传奇等级。
