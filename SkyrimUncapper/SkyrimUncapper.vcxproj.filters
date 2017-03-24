@@ -60,6 +60,9 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ScanMemory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -82,6 +85,9 @@
     </ClCompile>
     <ClCompile Include="BranchTrampoline.cpp">
       <Filter>SKSE</Filter>
+    </ClCompile>
+    <ClCompile Include="ScanMemory.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

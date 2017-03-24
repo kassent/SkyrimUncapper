@@ -1,7 +1,7 @@
 #pragma once
 
+#include <vector>
 #include "Relocation.h"
-//#include <vector>
 
 
 // this has been tested to work for non-varargs functions
@@ -87,7 +87,7 @@ std::string GetConfigOption(const char * section, const char * key);
 bool GetConfigOption_UInt32(const char * section, const char * key, UInt32 * dataOut);
 
 const std::string & GetOSInfoStr();
-//uintptr_t BinarySearch(const std::vector<UInt8>& binary);
+uintptr_t BinarySearch(const std::vector<UInt8>& binary);
 
 void * GetIATAddr(void * module, const char * searchDllName, const char * searchImportName);
 

@@ -5,6 +5,10 @@
 #include "Settings.h"
 #include "Utilities.h"
 
+#ifdef _DEBUG
+#include "ScanMemory.h"
+#endif
+
 #define GAME_EXE_NAME		"SkyrimSE.exe"
 #define GAME_EXE_VERSION	"1.4.2.0"
 
@@ -86,6 +90,10 @@ void SkyrimUncapper_Initialize(void)
 		_ERROR("couldn't create codegen buffer. this is fatal. skipping remainder of init process.");
 		return;
 	}
+
+#ifdef _DEBUG
+	ScanMemory();
+#endif
 
 	settings.ReadConfig();
 

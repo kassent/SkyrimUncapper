@@ -51,8 +51,7 @@
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionSettings" />
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
@@ -138,6 +137,7 @@
     <ClInclude Include="Relocation.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SafeWrite.h" />
+    <ClInclude Include="ScanMemory.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="SimpleIni.h" />
     <ClInclude Include="Utilities.h" />
@@ -152,6 +152,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Relocation.cpp" />
     <ClCompile Include="SafeWrite.cpp" />
+    <ClCompile Include="ScanMemory.cpp" />
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="Utilities.cpp" />
   </ItemGroup>
@@ -167,6 +168,5 @@
     <ResourceCompile Include="SkyrimUncapper.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets" />
 </Project>
