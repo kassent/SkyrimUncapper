@@ -25,7 +25,7 @@ class PlayerSkills
 public:
 
 	enum {
-		kAdvanceableSkillOffset = 6,
+		kAdvanceableSkillOffset = 6, //
 		kNumAdvanceableSkills = 18
 	};
 

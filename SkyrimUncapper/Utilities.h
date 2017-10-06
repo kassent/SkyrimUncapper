@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include "Relocation.h"
+#include "skse64_common/Relocation.h"
 
 
 // this has been tested to work for non-varargs functions

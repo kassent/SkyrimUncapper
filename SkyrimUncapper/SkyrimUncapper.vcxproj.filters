@@ -33,34 +33,25 @@
     <ClInclude Include="SimpleIni.h">
       <Filter>SimpleIni</Filter>
     </ClInclude>
-    <ClInclude Include="xbyak.h">
-      <Filter>JIT</Filter>
-    </ClInclude>
-    <ClInclude Include="xbyak_bin2hex.h">
-      <Filter>JIT</Filter>
-    </ClInclude>
-    <ClInclude Include="xbyak_mnemonic.h">
-      <Filter>JIT</Filter>
-    </ClInclude>
-    <ClInclude Include="xbyak_util.h">
-      <Filter>JIT</Filter>
-    </ClInclude>
     <ClInclude Include="Utilities.h">
-      <Filter>SKSE</Filter>
-    </ClInclude>
-    <ClInclude Include="SafeWrite.h">
-      <Filter>SKSE</Filter>
-    </ClInclude>
-    <ClInclude Include="Relocation.h">
-      <Filter>SKSE</Filter>
-    </ClInclude>
-    <ClInclude Include="BranchTrampoline.h">
       <Filter>SKSE</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ScanMemory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="xbyak.h">
+      <Filter>JIT</Filter>
+    </ClInclude>
+    <ClInclude Include="GameSettings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NiTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PluginAPI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -77,16 +68,13 @@
     <ClCompile Include="Utilities.cpp">
       <Filter>SKSE</Filter>
     </ClCompile>
-    <ClCompile Include="SafeWrite.cpp">
-      <Filter>SKSE</Filter>
-    </ClCompile>
-    <ClCompile Include="Relocation.cpp">
-      <Filter>SKSE</Filter>
-    </ClCompile>
-    <ClCompile Include="BranchTrampoline.cpp">
-      <Filter>SKSE</Filter>
-    </ClCompile>
     <ClCompile Include="ScanMemory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GameSettings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NiTypes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,54 +1,23 @@
 #include <ShlObj.h>
-#include "Relocation.h"
-#include "BranchTrampoline.h"
+#include "skse64_common/Relocation.h"
+#include "skse64_common/BranchTrampoline.h"
 #include "Hook_Skill.h"
 #include "Settings.h"
 #include "Utilities.h"
+#include "PluginAPI.h"
 
 #ifdef _DEBUG
 #include "ScanMemory.h"
 #endif
 
 #define GAME_EXE_NAME		"SkyrimSE.exe"
-#define GAME_EXE_VERSION	"1.4.2.0"
 
 IDebugLog gLog;
 void * g_moduleHandle = nullptr;
 
-enum
-{
-	kPluginHandle_Invalid = 0xFFFFFFFF
-};
 
 UInt32	g_pluginHandle = kPluginHandle_Invalid;
 
-struct PluginInfo
-{
-	enum
-	{
-		kInfoVersion = 1
-	};
-
-	UInt32			infoVersion;
-	const char *	name;
-	UInt32			version;
-};
-
-struct SKSEInterface
-{
-	UInt32	skseVersion;
-	UInt32	runtimeVersion;
-	UInt32	editorVersion;
-	UInt32	isEditor;
-	void *	(*QueryInterface)(UInt32 id);
-
-	// call during your Query or Load functions to get a PluginHandle uniquely identifying your plugin
-	// invalid if called at any other time, so call it once and save the result
-	UInt32	(*GetPluginHandle)(void);
-
-	// returns the SKSE build's release index
-	UInt32	(*GetReleaseIndex)(void);
-};
 
 void SkyrimUncapper_Initialize(void)
 {
@@ -58,20 +27,14 @@ void SkyrimUncapper_Initialize(void)
 
 	gLog.OpenRelative(CSIDL_MYDOCUMENTS, "\\My Games\\Skyrim Special Edition\\SkyrimUncapper\\SkyrimUncapper.log");
 
-	_MESSAGE("imagebase = %016I64X", GetModuleHandle(NULL));
-	_MESSAGE("reloc mgr imagebase = %016I64X", RelocationManager::s_baseAddr);
+	_MESSAGE("imagebase = %016I64X ===============", GetModuleHandle(NULL));
+	_MESSAGE("reloc mgr imagebase = %016I64X ==============", RelocationManager::s_baseAddr);
 
 	std::string version;
 
 	if (GetFileVersion(GAME_EXE_NAME, version))
 	{
-		if (strcmp(version.c_str(), GAME_EXE_VERSION) != NULL)
-		{
-			char warningInfo[100];
-			sprintf_s(warningInfo, "SkyrimSE.exe's current version is unsupported, required version is %s", GAME_EXE_VERSION);
-			MessageBox(NULL, warningInfo, "SkyrimUncapper", MB_OK);
-			return;
-		}
+
 	}
 	else
 	{
@@ -90,11 +53,6 @@ void SkyrimUncapper_Initialize(void)
 		_ERROR("couldn't create codegen buffer. this is fatal. skipping remainder of init process.");
 		return;
 	}
-
-#ifdef _DEBUG
-	ScanMemory();
-#endif
-
 	settings.ReadConfig();
 
 	Hook_Skill_Commit();
@@ -123,7 +81,7 @@ extern "C" {
 
 	bool StartSkyrimUncapper(void)
 	{
-		g_moduleHandle = (void *)::GetModuleHandle("SkyrimUncapper.dll");
+		g_moduleHandle = reinterpret_cast<void *>(GetModuleHandleA("SkyrimUncapper.dll"));
 		SkyrimUncapper_Initialize();
 		return true;
 	}
@@ -131,7 +89,7 @@ extern "C" {
 	bool SKSEPlugin_Query(const SKSEInterface * skse, PluginInfo * info)
 	{
 
-		g_moduleHandle = (void *)::GetModuleHandle("SkyrimUncapper.dll");
+		g_moduleHandle = reinterpret_cast<void *>(GetModuleHandleA("SkyrimUncapper.dll"));
 
 		SkyrimUncapper_Initialize();
 
@@ -147,7 +105,6 @@ extern "C" {
 
 			return false;
 		}
-
 		return true;
 	}
 
